@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TrilloAI Framework</title>
+    <!-- Font Awesome Icons -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <!-- Roboto Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* === BASIC LAYOUT === */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #fafafa;
+            color: #212121;
+        }
+
+        .tai-index-layout {
+            display: grid;
+            grid-template-areas:
+                "header header"
+                "sidebar main";
+            grid-template-columns: 280px 1fr;
+            grid-template-rows: 64px 1fr;
+            height: 100vh;
+        }
+
+        .tai-index-header {
+            grid-area: header;
+            background: #ffffff;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .tai-index-sidebar {
+            grid-area: sidebar;
+            background: #ffffff;
+            border-right: 1px solid #e0e0e0;
+        }
+
+        .tai-index-main {
+            grid-area: main;
+            background: #fafafa;
+        }
+
+        /* === LOADING STATES === */
+        .tai-loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            color: #666;
+            padding: 20px;
+        }
+
+        .tai-loading::before {
+            content: '';
+            width: 16px;
+            height: 16px;
+            border: 2px solid #e0e0e0;
+            border-top: 2px solid #1976d2;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 8px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* === ERROR STATES === */
+        .tai-error {
+            padding: 20px;
+            color: #d32f2f;
+            background: #ffebee;
+            border: 1px solid #ffcdd2;
+            border-radius: 4px;
+            margin: 16px;
+        }
+
+        /* === RESPONSIVE === */
+        @media (max-width: 768px) {
+            .tai-index-layout {
+                grid-template-areas:
+                    "header"
+                    "main";
+                grid-template-columns: 1fr;
+            }
+
+            .tai-index-sidebar {
+                position: fixed;
+                top: 64px;
+                left: 0;
+                width: 280px;
+                height: calc(100vh - 64px);
+                z-index: 200;
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
+            }
+
+            .tai-index-sidebar.open {
+                transform: translateX(0);
+            }
+        }
+
+        /* === DEBUG INFO === */
+        .tai-debug-info {
+            position: fixed;
+            bottom: 10px;
+            right: 10px;
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-family: monospace;
+            z-index: 1000;
+            max-width: 300px;
+        }
+
+        .tai-debug-toggle {
+            position: fixed;
+            bottom: 10px;
+            left: 10px;
+            background: #1976d2;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            z-index: 1000;
+        }
+    </style>
+</head>
+<body>
+    <div class="tai-index-layout">
+        <!-- Header Container -->
+        <div class="tai-index-header"
+             template-name="header"
+             metadata-name="header"
+             id="tai-header-container">
+            <div class="tai-loading">Loading header...</div>
+        </div>
+
+        <!-- Sidebar Container -->
+        <div class="tai-index-sidebar"
+             template-name="nav"
+             metadata-name="nav"
+             id="tai-nav-container">
+            <div class="tai-loading">Loading navigation...</div>
+        </div>
+
+        <!-- Main Content Container -->
+        <div class="tai-index-main"
+             template-name="main"
+             metadata-name="main"
+             id="tai-main-container">
+            <div class="tai-loading">Loading main content...</div>
+        </div>
+    </div>
+
+    <!-- Debug Controls -->
+    <button class="tai-debug-toggle" onclick="toggleDebugInfo()">Debug</button>
+    <div class="tai-debug-info" id="debug-info" style="display: none;">
+        <div id="debug-content">Initializing...</div>
+    </div>
+
+    <!-- HTTP Library (ensure this loads before TemplateFactory) -->
+    <script src="http.js"></script>
+
+    <!-- TemplateFactory Library -->
+    <script src="templatefactory.js"></script>
+
+    <script src="sidebarnavigation.js"></script>
+
+    <script>
+
+    const SIDEBAR_METADATA = {
+      // Component identification
+      componentName: "SidebarNavigation",
+      namespace: "sidebarNav",
+
+      // Namespacing configuration
+      cssNamespace: "tai-nav", // All CSS classes prefixed with tai-nav-
+      jsNamespace: "TrilloAI", // JavaScript objects under TrilloAI.SidebarNavigation
+
+      // Sidebar configuration
+      sidebar: {
+        width: "280px",
+        collapsedWidth: "60px",
+        position: "fixed", // "fixed", "relative", "sticky"
+        theme: "light", // "light", "dark", "custom"
+        showToggle: true,
+
+        // Branding/Header section
+        branding: {
+          logo: {
+            src: "https://via.placeholder.com/40x40/1976d2/ffffff?text=TA",
+            alt: "Trillo AI",
+            width: "40px",
+            height: "40px"
+          },
+          title: "Trillo AI",
+          subtitle: "Navigation"
+        },
+
+        // Navigation structure (supports up to 3 levels)
+        navigation: [
+          {
+            id: "dashboard",
+            label: "Dashboard",
+            icon: "fa-tachometer-alt",
+            url: "dashboard.html",
+            active: true,
+            badge: {
+              text: "New",
+              color: "success"
+            }
+          },
+          {
+            id: "users",
+            label: "User Management",
+            icon: "fa-users",
+            children: [
+              {
+                id: "active-users",
+                label: "Active Users",
+                url: "users-active.html",
+                count: 127
+              },
+              {
+                id: "inactive-users",
+                label: "Inactive Users",
+                url: "users-inactive.html",
+                count: 23
+              },
+              {
+                id: "user-roles",
+                label: "Roles & Permissions",
+                children: [
+                  {
+                    id: "roles",
+                    label: "Manage Roles",
+                    url: "roles.html"
+                  },
+                  {
+                    id: "permissions",
+                    label: "Permissions",
+                    url: "permissions.html"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            id: "orders",
+            label: "Orders",
+            icon: "fa-shopping-cart",
+            url: "orders.html",
+            count: 43,
+            notification: true
+          },
+          {
+            id: "shipping",
+            label: "Shipping",
+            icon: "fa-truck",
+            children: [
+              {
+                id: "active-shipments",
+                label: "Active Shipments",
+                url: "shipments-active.html",
+                count: 89
+              },
+              {
+                id: "tracking",
+                label: "Track Shipments",
+                url: "tracking.html"
+              },
+              {
+                id: "delivery-zones",
+                label: "Delivery Zones",
+                url: "delivery-zones.html"
+              }
+            ]
+          },
+          {
+            type: "separator",
+            label: "Analytics"
+          },
+          {
+            id: "reports",
+            label: "Reports",
+            icon: "fa-chart-bar",
+            url: "reports.html"
+          },
+          {
+            id: "analytics",
+            label: "Analytics",
+            icon: "fa-chart-line",
+            children: [
+              {
+                id: "sales-analytics",
+                label: "Sales Analytics",
+                url: "analytics-sales.html"
+              },
+              {
+                id: "user-analytics",
+                label: "User Analytics",
+                url: "analytics-users.html"
+              }
+            ]
+          },
+          {
+            type: "separator",
+            label: "System"
+          },
+          {
+            id: "settings",
+            label: "Settings",
+            icon: "fa-cog",
+            url: "settings.html"
+          },
+          {
+            id: "help",
+            label: "Help & Support",
+            icon: "fa-question-circle",
+            url: "help.html",
+            external: true
+          }
+        ],
+
+        // Footer section (optional)
+        footer: {
+          enabled: true,
+          content: [
+            {
+              type: "user-info",
+              user: {
+                name: "John Doe",
+                email: "john.doe@company.com",
+                avatar: "https://via.placeholder.com/32x32/4caf50/ffffff?text=JD"
+              },
+              showDropdown: true,
+              dropdownItems: [
+                {
+                  label: "Profile",
+                  icon: "fa-user",
+                  action: "showProfile"
+                },
+                {
+                  label: "Settings",
+                  icon: "fa-cog",
+                  action: "showSettings"
+                },
+                {
+                  type: "separator"
+                },
+                {
+                  label: "Logout",
+                  icon: "fa-sign-out-alt",
+                  action: "logout"
+                }
+              ]
+            }
+          ]
+        }
+      },
+
+      // Behavior configuration
+      behavior: {
+        collapsible: true,
+        accordion: true, // Only one submenu open at a time
+        autoCollapse: false, // Auto-collapse on mobile
+        rememberState: true, // Remember collapsed/expanded state
+        highlightActive: true,
+        smoothTransitions: true
+      },
+
+      // Theme colors
+      colors: {
+        background: "#ffffff",
+        text: "#212121",
+        textSecondary: "#757575",
+        accent: "#1976d2",
+        hover: "#f5f5f5",
+        active: "#e3f2fd",
+        border: "#e0e0e0",
+        separator: "#eeeeee"
+      }
+    };
+
+        /**
+         * TrilloAI Framework Application
+         * Uses TemplateFactory for component management
+         */
+        class TrilloAIApp {
+            constructor() {
+                this.factory = null;
+                this.debugVisible = false;
+                this.loadStartTime = Date.now();
+                this.log('TrilloAI App initializing...');
+            }
+
+            /**
+             * Initialize the application
+             */
+            async init() {
+                try {
+                    this.log('🚀 Starting TrilloAI Framework...');
+
+                    // Initialize TemplateFactory
+                    this.factory = window.TemplateFactory || new window.TemplateFactoryClass();
+
+                    // Initialize with document body
+                    //this.factory.initialize(document.body);
+
+
+
+                    // Load all components
+                    //await this.loadAllComponents();
+
+                    const container = document.getElementById('tai-nav-container');
+                    const sidebarGenerator = new SidebarNavigationGenerator();
+                    sidebarGenerator.render(SIDEBAR_METADATA, container);
+
+                    // Update debug info
+                    this.updateDebugInfo();
+
+                    const loadTime = Date.now() - this.loadStartTime;
+                    this.log(`✅ TrilloAI Framework ready in ${loadTime}ms`);
+
+                    // Expose to global scope for debugging
+                    window.TrilloApp = this;
+
+                } catch (error) {
+                    this.log('❌ Failed to initialize TrilloAI Framework:', error);
+                    this.showError('Failed to initialize application', error);
+                }
+            }
+
+            /**
+             * Load all components using TemplateFactory
+             */
+            async loadAllComponents() {
+                if (!this.factory) {
+                    throw new Error('TemplateFactory not initialized');
+                }
+
+                this.log('🔄 Loading components...');
+
+                try {
+                    const result = await this.factory.loadAllComponents();
+
+                    if (result.success === result.total) {
+                        this.log(`✅ All ${result.total} components loaded successfully`);
+                    } else {
+                        this.log(`⚠️ Loaded ${result.success}/${result.total} components`);
+
+                        // Show errors for failed components
+                        if (result.results) {
+                            result.results.forEach((success, index) => {
+                                if (!success) {
+                                    const containers = Array.from(this.factory.containers.keys());
+                                    this.showComponentError(containers[index]);
+                                }
+                            });
+                        }
+                    }
+
+                    return result;
+
+                } catch (error) {
+                    this.log('❌ Error loading components:', error);
+                    throw error;
+                }
+            }
+
+            /**
+             * Update debug information
+             */
+            updateDebugInfo() {
+                if (!this.factory) return;
+
+                const status = this.factory.getStatus();
+                const loadTime = Date.now() - this.loadStartTime;
+
+                const debugContent = document.getElementById('debug-content');
+                if (debugContent) {
+                    debugContent.innerHTML = `
+                        <strong>TrilloAI Framework Debug</strong><br>
+                        Load Time: ${loadTime}ms<br>
+                        Containers: ${status.containersLoaded}/${status.containersTotal}<br>
+                        Components: ${status.loadedComponents}<br>
+                        Generators: ${status.generators}<br>
+                        HTTP: ${status.httpClientsConfigured ? '✓' : '✗'}<br>
+                        <button onclick="refreshComponents()" style="margin-top:8px;padding:4px 8px;font-size:10px;">Refresh</button>
+                    `;
+                }
+            }
+
+            /**
+             * Show error for a specific component
+             */
+            showComponentError(templateName) {
+                const container = this.factory.getContainer(templateName);
+                if (container && container.element) {
+                    container.element.innerHTML = `
+                        <div class="tai-error">
+                            <strong>Error loading ${templateName} component</strong><br>
+                            <small>Check console for details</small>
+                        </div>
+                    `;
+                }
+            }
+
+            /**
+             * Show general error
+             */
+            showError(message, error) {
+                console.error(message, error);
+
+                // Show error in main container if available
+                const mainContainer = document.getElementById('tai-main-container');
+                if (mainContainer) {
+                    mainContainer.innerHTML = `
+                        <div class="tai-error">
+                            <strong>${message}</strong><br>
+                            <small>${error?.message || 'Unknown error'}</small>
+                        </div>
+                    `;
+                }
+            }
+
+            /**
+             * Logging utility
+             */
+            log(...args) {
+                console.log('[TrilloApp]', ...args);
+            }
+
+            /**
+             * Get factory instance
+             */
+            getFactory() {
+                return this.factory;
+            }
+
+            /**
+             * Get application status
+             */
+            getStatus() {
+                return {
+                    initialized: !!this.factory,
+                    loadTime: Date.now() - this.loadStartTime,
+                    factory: this.factory ? this.factory.getStatus() : null
+                };
+            }
+        }
+
+        // Initialize application when DOM is ready
+        document.addEventListener('DOMContentLoaded', async function() {
+            try {
+                const app = new TrilloAIApp();
+                await app.init();
+
+                // Make app globally available
+                window.TrilloApp = app;
+
+            } catch (error) {
+                console.error('❌ Failed to start TrilloAI App:', error);
+            }
+        });
+    </script>
+</body>
+</html>
