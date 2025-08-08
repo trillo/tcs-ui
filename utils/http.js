@@ -175,6 +175,37 @@ class TrilloHTTPClient {
         return this.request(url, { ...options, method: 'PATCH', data });
     }
 
+    async json(url, options = {}) {
+      const response = await this.get(url, options);
+
+      // If data is a string (raw JSON), try to parse it
+      if (typeof response.data === 'string') {
+          try {
+              return JSON.parse(response.data);
+          } catch (error) {
+              this.log('Failed to parse JSON string:', error.message);
+              throw new Error('Invalid JSON response');
+          }
+      }
+
+      // If data is null or undefined, there might have been a parsing error
+      if (response.data === null || response.data === undefined) {
+          throw new Error('No data received or failed to parse response');
+      }
+
+      return response.data;
+    };
+
+    async postJson(url, data, options = {}) {
+        const response = await this.post(url, data, options);
+        return response.data;
+    };
+
+    async putJson(url, data, options = {}) {
+        const response = await this.put(url, data, options);
+        return response.data;
+    };
+
     /**
      * DELETE request
      */
@@ -393,35 +424,51 @@ class TrilloHTTPClient {
     /**
      * Create response object
      */
-    async createResponseObject(response, config) {
-        const responseObj = {
-            status: response.status,
-            statusText: response.statusText,
-            headers: this.responseHeadersToObject(response.headers),
-            config: config,
-            url: response.url
-        };
+     /**
+  * Create response object
+  */
+ async createResponseObject(response, config) {
+     const responseObj = {
+         status: response.status,
+         statusText: response.statusText,
+         headers: this.responseHeadersToObject(response.headers),
+         config: config,
+         url: response.url
+     };
 
-        // Parse response data based on content type
-        const contentType = response.headers.get('content-type') || '';
+     // Parse response data based on content type
+     const contentType = response.headers.get('content-type') || '';
 
-        try {
-            if (config.responseType === 'blob') {
-                responseObj.data = await response.blob();
-            } else if (contentType.includes('application/json')) {
-                responseObj.data = await response.json();
-            } else if (contentType.includes('text/')) {
-                responseObj.data = await response.text();
-            } else {
-                responseObj.data = await response.arrayBuffer();
-            }
-        } catch (error) {
-            this.log('Failed to parse response:', error.message);
-            responseObj.data = null;
-        }
+     try {
+         if (config.responseType === 'blob') {
+             responseObj.data = await response.blob();
+         } else if (contentType.includes('application/json')) {
+             const textResponse = await response.text();
+             // Try to parse as JSON, if it fails, store the raw text
+             try {
+                 responseObj.data = JSON.parse(textResponse);
+             } catch (jsonError) {
+                 this.log('JSON parse failed, storing raw text:', textResponse.substring(0, 100));
+                 responseObj.data = textResponse;
+             }
+         } else if (contentType.includes('text/')) {
+             responseObj.data = await response.text();
+         } else {
+             responseObj.data = await response.arrayBuffer();
+         }
+     } catch (error) {
+         this.log('Failed to parse response:', error.message);
+         // Try to get the raw response as text as a fallback
+         try {
+             responseObj.data = await response.text();
+         } catch (fallbackError) {
+             this.log('Failed to get response as text:', fallbackError.message);
+             responseObj.data = null;
+         }
+     }
 
-        return responseObj;
-    }
+     return responseObj;
+   }
 
     /**
      * Handle mock requests
@@ -673,64 +720,29 @@ class TrilloHTTPClient {
     }
 }
 
-// === IMMEDIATE BROWSER EXPORT ===
-// Export immediately when script loads to avoid timing issues
-(function() {
-    'use strict';
+function setupHttpClients() {
+    try {
+        // Metadata Server Client
+        window.MetadataClient = new TrilloHTTPClient();
+        window.MetadataClient.configure({
+            baseURL: 'http://localhost:8080',
+            debug: this.debug,
+            timeout: 15000
+        });
 
-    if (typeof window !== 'undefined') {
-        // Create global instance immediately
-        const httpClient = new TrilloHTTPClient();
+        // Application Data Client (use main instance)
+        window.ApiClient = new TrilloHTTPClient();
+        window.ApiClient.configure({
+            baseURL: 'https://localhost:9020',
+            debug: this.debug,
+            timeout: 30000
+        });
 
-        // Add convenience methods
-        httpClient.json = async function(url, options = {}) {
-            const response = await this.get(url, options);
-            return response.data;
-        };
+        console.log('HTTP clients configured successfully and made globally available');
 
-        httpClient.postJson = async function(url, data, options = {}) {
-            const response = await this.post(url, data, options);
-            return response.data;
-        };
-
-        httpClient.putJson = async function(url, data, options = {}) {
-            const response = await this.put(url, data, options);
-            return response.data;
-        };
-
-        // Export the main instance as TrilloHTTPClient for convenience
-        window.TrilloHTTP = httpClient;
-        // Export the class for creating new instances
-        window.TrilloHTTPClass = TrilloHTTPClient;
-
-        console.log('✅ TrilloHTTPClient library loaded');
-        console.log('- Instance methods:', Object.getOwnPropertyNames(Object.getPrototypeOf(httpClient)));
-        console.log('- Configure available:', typeof httpClient.configure);
+    } catch (error) {
+        console.log('Error setting up HTTP clients:', error);
     }
-})();
-
-// === MODULE EXPORT ===
-if (typeof module !== 'undefined' && module.exports) {
-    // Create instance for module export
-    const httpClient = new TrilloHTTPClient();
-
-    // Add convenience methods
-    httpClient.json = async function(url, options = {}) {
-        const response = await this.get(url, options);
-        return response.data;
-    };
-
-    httpClient.postJson = async function(url, data, options = {}) {
-        const response = await this.post(url, data, options);
-        return response.data;
-    };
-
-    httpClient.putJson = async function(url, data, options = {}) {
-        const response = await this.put(url, data, options);
-        return response.data;
-    };
-
-    module.exports = { TrilloHTTP, httpClient };
 }
 
 // Usage Examples:

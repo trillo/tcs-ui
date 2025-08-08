@@ -1,0 +1,198 @@
+{
+  "componentName": "SidebarNavigation",
+  "namespace": "sidebarNav",
+  "cssNamespace": "tai-nav",
+  "jsNamespace": "TrilloAI",
+  "sidebar": {
+    "width": "280px",
+    "collapsedWidth": "60px",
+    "position": "fixed",
+    "theme": "light",
+    "showToggle": true,
+    "branding": {
+      "logo": {
+        "src": "https://via.placeholder.com/40x40/1976d2/ffffff?text=TA",
+        "alt": "Trillo AI",
+        "width": "40px",
+        "height": "40px"
+      },
+      "title": "Trillo AI",
+      "subtitle": "Navigation"
+    },
+    "navigation": [
+      {
+        "id": "dashboard",
+        "label": "Dashboard",
+        "icon": "fa-tachometer-alt",
+        "url": "dashboard.html",
+        "active": true,
+        "badge": {
+          "text": "New",
+          "color": "success"
+        }
+      },
+      {
+        "id": "users",
+        "label": "User Management",
+        "icon": "fa-users",
+        "children": [
+          {
+            "id": "active-users",
+            "label": "Active Users",
+            "url": "users-active.html",
+            "count": 127
+          },
+          {
+            "id": "inactive-users",
+            "label": "Inactive Users",
+            "url": "users-inactive.html",
+            "count": 23
+          },
+          {
+            "id": "user-roles",
+            "label": "Roles & Permissions",
+            "children": [
+              {
+                "id": "roles",
+                "label": "Manage Roles",
+                "url": "roles.html"
+              },
+              {
+                "id": "permissions",
+                "label": "Permissions",
+                "url": "permissions.html"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "orders",
+        "label": "Orders",
+        "icon": "fa-shopping-cart",
+        "url": "orders.html",
+        "count": 43,
+        "notification": true
+      },
+      {
+        "id": "shipping",
+        "label": "Shipping",
+        "icon": "fa-truck",
+        "children": [
+          {
+            "id": "active-shipments",
+            "label": "Active Shipments",
+            "url": "shipments-active.html",
+            "count": 89
+          },
+          {
+            "id": "tracking",
+            "label": "Track Shipments",
+            "url": "tracking.html"
+          },
+          {
+            "id": "delivery-zones",
+            "label": "Delivery Zones",
+            "url": "delivery-zones.html"
+          }
+        ]
+      },
+      {
+        "type": "separator",
+        "label": "Analytics"
+      },
+      {
+        "id": "reports",
+        "label": "Reports",
+        "icon": "fa-chart-bar",
+        "url": "reports.html"
+      },
+      {
+        "id": "analytics",
+        "label": "Analytics",
+        "icon": "fa-chart-line",
+        "children": [
+          {
+            "id": "sales-analytics",
+            "label": "Sales Analytics",
+            "url": "analytics-sales.html"
+          },
+          {
+            "id": "user-analytics",
+            "label": "User Analytics",
+            "url": "analytics-users.html"
+          }
+        ]
+      },
+      {
+        "type": "separator",
+        "label": "System"
+      },
+      {
+        "id": "settings",
+        "label": "Settings",
+        "icon": "fa-cog",
+        "url": "settings.html"
+      },
+      {
+        "id": "help",
+        "label": "Help & Support",
+        "icon": "fa-question-circle",
+        "url": "help.html",
+        "external": true
+      }
+    ],
+    "footer": {
+      "enabled": true,
+      "content": [
+        {
+          "type": "user-info",
+          "user": {
+            "name": "John Doe",
+            "email": "john.doe@company.com",
+            "avatar": "https://via.placeholder.com/32x32/4caf50/ffffff?text=JD"
+          },
+          "showDropdown": true,
+          "dropdownItems": [
+            {
+              "label": "Profile",
+              "icon": "fa-user",
+              "action": "showProfile"
+            },
+            {
+              "label": "Settings",
+              "icon": "fa-cog",
+              "action": "showSettings"
+            },
+            {
+              "type": "separator"
+            },
+            {
+              "label": "Logout",
+              "icon": "fa-sign-out-alt",
+              "action": "logout"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "behavior": {
+    "collapsible": true,
+    "accordion": true,
+    "autoCollapse": false,
+    "rememberState": true,
+    "highlightActive": true,
+    "smoothTransitions": true
+  },
+  "colors": {
+    "background": "#ffffff",
+    "text": "#212121",
+    "textSecondary": "#757575",
+    "accent": "#1976d2",
+    "hover": "#f5f5f5",
+    "active": "#e3f2fd",
+    "border": "#e0e0e0",
+    "separator": "#eeeeee"
+  }
+}

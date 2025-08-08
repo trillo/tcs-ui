@@ -175,229 +175,11 @@
     </div>
 
     <!-- HTTP Library (ensure this loads before TemplateFactory) -->
-    <script src="http.js"></script>
-
-    <!-- TemplateFactory Library -->
-    <script src="templatefactory.js"></script>
-
-    <script src="sidebarnavigation.js"></script>
+    <script src="utils/http.js"></script>
+    <script src="generators/header.js"></script>
+    <script src="generators/sidebarnavigation.js"></script>
 
     <script>
-
-    const SIDEBAR_METADATA = {
-      // Component identification
-      componentName: "SidebarNavigation",
-      namespace: "sidebarNav",
-
-      // Namespacing configuration
-      cssNamespace: "tai-nav", // All CSS classes prefixed with tai-nav-
-      jsNamespace: "TrilloAI", // JavaScript objects under TrilloAI.SidebarNavigation
-
-      // Sidebar configuration
-      sidebar: {
-        width: "280px",
-        collapsedWidth: "60px",
-        position: "fixed", // "fixed", "relative", "sticky"
-        theme: "light", // "light", "dark", "custom"
-        showToggle: true,
-
-        // Branding/Header section
-        branding: {
-          logo: {
-            src: "https://via.placeholder.com/40x40/1976d2/ffffff?text=TA",
-            alt: "Trillo AI",
-            width: "40px",
-            height: "40px"
-          },
-          title: "Trillo AI",
-          subtitle: "Navigation"
-        },
-
-        // Navigation structure (supports up to 3 levels)
-        navigation: [
-          {
-            id: "dashboard",
-            label: "Dashboard",
-            icon: "fa-tachometer-alt",
-            url: "dashboard.html",
-            active: true,
-            badge: {
-              text: "New",
-              color: "success"
-            }
-          },
-          {
-            id: "users",
-            label: "User Management",
-            icon: "fa-users",
-            children: [
-              {
-                id: "active-users",
-                label: "Active Users",
-                url: "users-active.html",
-                count: 127
-              },
-              {
-                id: "inactive-users",
-                label: "Inactive Users",
-                url: "users-inactive.html",
-                count: 23
-              },
-              {
-                id: "user-roles",
-                label: "Roles & Permissions",
-                children: [
-                  {
-                    id: "roles",
-                    label: "Manage Roles",
-                    url: "roles.html"
-                  },
-                  {
-                    id: "permissions",
-                    label: "Permissions",
-                    url: "permissions.html"
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            id: "orders",
-            label: "Orders",
-            icon: "fa-shopping-cart",
-            url: "orders.html",
-            count: 43,
-            notification: true
-          },
-          {
-            id: "shipping",
-            label: "Shipping",
-            icon: "fa-truck",
-            children: [
-              {
-                id: "active-shipments",
-                label: "Active Shipments",
-                url: "shipments-active.html",
-                count: 89
-              },
-              {
-                id: "tracking",
-                label: "Track Shipments",
-                url: "tracking.html"
-              },
-              {
-                id: "delivery-zones",
-                label: "Delivery Zones",
-                url: "delivery-zones.html"
-              }
-            ]
-          },
-          {
-            type: "separator",
-            label: "Analytics"
-          },
-          {
-            id: "reports",
-            label: "Reports",
-            icon: "fa-chart-bar",
-            url: "reports.html"
-          },
-          {
-            id: "analytics",
-            label: "Analytics",
-            icon: "fa-chart-line",
-            children: [
-              {
-                id: "sales-analytics",
-                label: "Sales Analytics",
-                url: "analytics-sales.html"
-              },
-              {
-                id: "user-analytics",
-                label: "User Analytics",
-                url: "analytics-users.html"
-              }
-            ]
-          },
-          {
-            type: "separator",
-            label: "System"
-          },
-          {
-            id: "settings",
-            label: "Settings",
-            icon: "fa-cog",
-            url: "settings.html"
-          },
-          {
-            id: "help",
-            label: "Help & Support",
-            icon: "fa-question-circle",
-            url: "help.html",
-            external: true
-          }
-        ],
-
-        // Footer section (optional)
-        footer: {
-          enabled: true,
-          content: [
-            {
-              type: "user-info",
-              user: {
-                name: "John Doe",
-                email: "john.doe@company.com",
-                avatar: "https://via.placeholder.com/32x32/4caf50/ffffff?text=JD"
-              },
-              showDropdown: true,
-              dropdownItems: [
-                {
-                  label: "Profile",
-                  icon: "fa-user",
-                  action: "showProfile"
-                },
-                {
-                  label: "Settings",
-                  icon: "fa-cog",
-                  action: "showSettings"
-                },
-                {
-                  type: "separator"
-                },
-                {
-                  label: "Logout",
-                  icon: "fa-sign-out-alt",
-                  action: "logout"
-                }
-              ]
-            }
-          ]
-        }
-      },
-
-      // Behavior configuration
-      behavior: {
-        collapsible: true,
-        accordion: true, // Only one submenu open at a time
-        autoCollapse: false, // Auto-collapse on mobile
-        rememberState: true, // Remember collapsed/expanded state
-        highlightActive: true,
-        smoothTransitions: true
-      },
-
-      // Theme colors
-      colors: {
-        background: "#ffffff",
-        text: "#212121",
-        textSecondary: "#757575",
-        accent: "#1976d2",
-        hover: "#f5f5f5",
-        active: "#e3f2fd",
-        border: "#e0e0e0",
-        separator: "#eeeeee"
-      }
-    };
-
         /**
          * TrilloAI Framework Application
          * Uses TemplateFactory for component management
@@ -417,20 +199,18 @@
                 try {
                     this.log('🚀 Starting TrilloAI Framework...');
 
-                    // Initialize TemplateFactory
-                    this.factory = window.TemplateFactory || new window.TemplateFactoryClass();
-
-                    // Initialize with document body
-                    //this.factory.initialize(document.body);
-
-
-
                     // Load all components
                     //await this.loadAllComponents();
-
+                    setupHttpClients();
+                    const metadata = await MetadataClient.json("/metadata/SIDEBAR.json");
                     const container = document.getElementById('tai-nav-container');
                     const sidebarGenerator = new SidebarNavigationGenerator();
-                    sidebarGenerator.render(SIDEBAR_METADATA, container);
+                    sidebarGenerator.render(metadata, container);
+
+                    const metadata2 = await MetadataClient.json("/metadata/HEADER.json");
+                    const container2 = document.getElementById('tai-header-container');
+                    const headerGenerator = new HeaderGenerator();
+                    headerGenerator.render(metadata2, container2);
 
                     // Update debug info
                     this.updateDebugInfo();
@@ -439,7 +219,7 @@
                     this.log(`✅ TrilloAI Framework ready in ${loadTime}ms`);
 
                     // Expose to global scope for debugging
-                    window.TrilloApp = this;
+                    window._TrilloApp = this;
 
                 } catch (error) {
                     this.log('❌ Failed to initialize TrilloAI Framework:', error);

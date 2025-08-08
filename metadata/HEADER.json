@@ -1,0 +1,140 @@
+{
+  "componentName": "HeaderNavigation",
+  "namespace": "headerNav",
+  "cssNamespace": "tai-header",
+  "jsNamespace": "TrilloAI",
+  "header": {
+    "height": "64px",
+    "position": "fixed",
+    "zIndex": 200,
+    "left": {
+      "sidebarToggle": {
+        "enabled": true,
+        "icon": "fa-bars",
+        "targetSidebar": "tai-nav-sidebar",
+        "targetNamespace": "TrilloAI.SidebarNavigation"
+      },
+      "branding": {
+        "logo": {
+          "src": "https://via.placeholder.com/40x40/1976d2/ffffff?text=TA",
+          "alt": "Trillo AI",
+          "width": "40px",
+          "height": "40px",
+          "url": "#dashboard"
+        },
+        "title": "Trillo AI",
+        "subtitle": "Admin Panel",
+        "showTitle": true,
+        "showSubtitle": true
+      }
+    },
+    "center": {
+      "enabled": true,
+      "content": {
+        "type": "search",
+        "searchPlaceholder": "Search anything...",
+        "searchAction": "globalSearch"
+      }
+    },
+    "right": {
+      "actions": [
+        {
+          "id": "notifications",
+          "icon": "fa-bell",
+          "tooltip": "Notifications",
+          "action": "showNotifications",
+          "badge": {
+            "count": 3,
+            "color": "error"
+          }
+        },
+        {
+          "id": "messages",
+          "icon": "fa-envelope",
+          "tooltip": "Messages",
+          "action": "showMessages",
+          "badge": {
+            "count": 7,
+            "color": "primary"
+          }
+        },
+        {
+          "id": "settings",
+          "icon": "fa-cog",
+          "tooltip": "Quick Settings",
+          "action": "showQuickSettings"
+        }
+      ],
+      "user": {
+        "name": "John Doe",
+        "role": "Administrator",
+        "avatar": {
+          "src": "https://via.placeholder.com/32x32/4caf50/ffffff?text=JD",
+          "alt": "John Doe",
+          "fallbackText": "JD"
+        },
+        "dropdown": {
+          "enabled": true,
+          "items": [
+            {
+              "id": "profile",
+              "label": "My Profile",
+              "icon": "fa-user",
+              "action": "showProfile",
+              "url": "#profile"
+            },
+            {
+              "id": "settings",
+              "label": "Account Settings",
+              "icon": "fa-cog",
+              "action": "showAccountSettings",
+              "url": "#settings"
+            },
+            {
+              "id": "billing",
+              "label": "Billing",
+              "icon": "fa-credit-card",
+              "action": "showBilling",
+              "url": "#billing"
+            },
+            {
+              "type": "separator"
+            },
+            {
+              "id": "help",
+              "label": "Help & Support",
+              "icon": "fa-question-circle",
+              "action": "showHelp",
+              "url": "#help"
+            },
+            {
+              "type": "separator"
+            },
+            {
+              "id": "logout",
+              "label": "Sign Out",
+              "icon": "fa-sign-out-alt",
+              "action": "logout",
+              "confirmMessage": "Are you sure you want to sign out?"
+            }
+          ]
+        }
+      }
+    }
+  },
+  "behavior": {
+    "sticky": false,
+    "hideOnScroll": true,
+    "showShadow": true,
+    "autoHideDropdowns": true
+  },
+  "colors": {
+    "background": "#ffffff",
+    "text": "#212121",
+    "textSecondary": "#757575",
+    "accent": "#1976d2",
+    "hover": "#f5f5f5",
+    "border": "#e0e0e0",
+    "shadow": "rgba(0, 0, 0, 0.1)"
+  }
+}
