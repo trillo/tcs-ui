@@ -1,0 +1,164 @@
+{
+  "componentName": "FormGenerator",
+  "namespace": "formGen",
+  "cssNamespace": "tai-form",
+  "jsNamespace": "TrilloAI",
+  "colors": {
+    "background": "#ffffff",
+    "text": "#212121",
+    "textSecondary": "#757575",
+    "accent": "#1976d2",
+    "hover": "#f5f5f5",
+    "border": "#e0e0e0",
+    "error": "#d32f2f",
+    "success": "#2e7d32"
+  },
+  "behavior": {
+    "rememberState": true,
+    "autosave": true,
+    "autosaveDebounceMs": 800,
+    "validateOn": "blur",
+    "steps": true,
+    "showRequiredAsterisk": true
+  },
+  "defaults": {
+    "country": "US",
+    "subscribe": true,
+    "rating": 4,
+    "tags": ["alpha", "beta"]
+  },
+  "events": {
+    "onChange": "onFormChange",
+    "onAutosave": "onFormAutosave",
+    "onSubmit": "onFormSubmit"
+  },
+  "form": {
+    "id": "user-registration",
+    "title": "User Registration",
+    "subtitle": "Create your account",
+    "description": "Fields below demonstrate a wide range of input controls and behaviors.",
+    "sections": [
+      {
+        "title": "Account",
+        "stepLabel": "Account",
+        "columns": 2,
+        "collapsible": false,
+        "fields": [
+          { "id": "email", "type": "email", "label": "Email", "placeholder": "you@example.com", "validation": { "required": true, "pattern": "^\\S+@\\S+\\.\\S+$", "messages": { "pattern": "Enter a valid email." } } },
+          { "id": "password", "type": "password", "label": "Password", "validation": { "required": true, "minLength": 8 } },
+          { "id": "confirmPassword", "type": "password", "label": "Confirm Password", "validation": { "required": true, "custom": "validateConfirmPassword", "messages": { "custom": "Passwords do not match." } } },
+          { "id": "username", "type": "text", "label": "Username", "placeholder": "jdoe", "validation": { "required": true, "minLength": 3 } },
+          { "id": "role", "type": "select", "label": "Role", "options": [ {"value": "user", "label": "User"}, {"value": "admin", "label": "Administrator"}, {"value": "moderator", "label": "Moderator"} ], "validation": { "required": true } },
+          { "id": "subscribe", "type": "switch", "label": "Subscribe to newsletter", "help": "We won't spam you." }
+        ]
+      },
+      {
+        "title": "Profile",
+        "stepLabel": "Profile",
+        "columns": 2,
+        "collapsible": true,
+        "collapsed": false,
+        "fields": [
+          { "id": "firstName", "type": "text", "label": "First Name", "validation": { "required": true } },
+          { "id": "lastName", "type": "text", "label": "Last Name", "validation": { "required": true } },
+          { "id": "phone", "type": "tel", "label": "Phone", "placeholder": "+1 (555) 123-4567" },
+          { "id": "website", "type": "url", "label": "Website" },
+          { "id": "birthDate", "type": "date", "label": "Birth Date" },
+          { "id": "favoriteColor", "type": "color", "label": "Favorite Color" },
+          { "id": "bio", "type": "textarea", "label": "Short Bio", "rows": 4, "help": "Tell us about yourself." },
+          { "id": "rating", "type": "rating", "label": "Satisfaction" },
+          { "id": "tags", "type": "tags", "label": "Interests", "placeholder": "Type and press Enter" },
+          { "id": "avatar", "type": "file", "label": "Avatar", "accept": "image/*", "help": "PNG/JPG up to 2MB" }
+        ]
+      },
+      {
+        "title": "Preferences",
+        "stepLabel": "Prefs",
+        "columns": 3,
+        "fields": [
+          { "id": "timezone", "type": "select", "label": "Timezone", "options": [
+            {"value": "PST", "label": "Pacific (PST)"}, {"value": "MST", "label": "Mountain (MST)"}, {"value": "CST", "label": "Central (CST)"}, {"value": "EST", "label": "Eastern (EST)"}
+          ] },
+          { "id": "notifications", "type": "checkbox-group", "label": "Notify me about", "options": [
+            {"value": "product", "label": "Product updates"}, {"value": "marketing", "label": "Marketing"}, {"value": "security", "label": "Security alerts"}
+          ] },
+          { "id": "theme", "type": "radio-group", "label": "Theme", "options": [
+            {"value": "light", "label": "Light"}, {"value": "dark", "label": "Dark"}, {"value": "system", "label": "System"}
+          ], "validation": {"required": true} },
+          { "id": "volume", "type": "range", "label": "Volume", "validation": {"min": 0, "max": 100, "step": 1} },
+          { "id": "dailyLimit", "type": "number", "label": "Daily Limit", "validation": {"min": 1, "max": 1000} },
+          { "id": "enable2FA", "type": "checkbox", "label": "Enable 2FA" }
+        ]
+      },
+      {
+        "title": "Address",
+        "stepLabel": "Address",
+        "columns": 2,
+        "fields": [
+          { "id": "country", "type": "select", "label": "Country", "options": [
+            {"value": "US", "label": "United States"}, {"value": "CA", "label": "Canada"}, {"value": "GB", "label": "United Kingdom"}
+          ] },
+          { "id": "state", "type": "text", "label": "State/Province", "visibleIf": "values.country === 'US' || values.country === 'CA'" },
+          { "id": "address1", "type": "text", "label": "Address Line 1", "validation": {"required": true} },
+          { "id": "address2", "type": "text", "label": "Address Line 2" },
+          { "id": "city", "type": "text", "label": "City", "validation": {"required": true} },
+          { "id": "postalCode", "type": "text", "label": "Postal Code", "validation": {"pattern": "^[A-Za-z0-9 -]{3,10}$" } }
+        ]
+      },
+      {
+        "title": "Employment History",
+        "stepLabel": "History",
+        "columns": 1,
+        "fields": [
+          {
+            "id": "jobs",
+            "type": "array",
+            "addLabel": "Add Job",
+            "minItems": 1,
+            "item": {
+              "fields": [
+                { "id": "company", "type": "text", "label": "Company", "validation": {"required": true} },
+                { "id": "title", "type": "text", "label": "Title" },
+                { "id": "startDate", "type": "date", "label": "Start Date" },
+                { "id": "endDate", "type": "date", "label": "End Date" },
+                { "id": "current", "type": "checkbox", "label": "I currently work here" },
+                { "id": "description", "type": "textarea", "label": "Description", "rows": 3 }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "title": "Agreements",
+        "stepLabel": "Legal",
+        "columns": 1,
+        "fields": [
+          { "id": "terms", "type": "checkbox", "label": "I agree to the Terms of Service", "validation": {"required": true}, "help": "You must agree before submitting." },
+          { "id": "signature", "type": "text", "label": "Type your full name as signature", "validation": {"required": true} }
+        ]
+      },
+      {
+        "title": "Advanced",
+        "stepLabel": "Advanced",
+        "columns": 1,
+        "collapsible": true,
+        "collapsed": true,
+        "fields": [
+          { "id": "notes", "type": "richtext", "label": "Rich Text Notes" },
+          { "id": "config", "type": "code", "label": "JSON Config", "rows": 8, "help": "Paste JSON here" }
+        ]
+      }
+    ]
+  },
+  "actions": {
+    "primary": {
+      "label": "Create Account",
+      "icon": "fa fa-check",
+      "api": { "url": "/api/users", "method": "POST" }
+    },
+    "secondary": { "label": "Reset", "action": "reset", "icon": "fa fa-undo" },
+    "extra": [
+      { "label": "Cancel", "action": "cancel", "icon": "fa fa-times", "variant": "ghost" }
+    ]
+  }
+}

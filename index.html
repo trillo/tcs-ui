@@ -178,6 +178,7 @@
     <script src="utils/http.js"></script>
     <script src="generators/header.js"></script>
     <script src="generators/sidebarnavigation.js"></script>
+    <script src="generators/form.js"></script>
 
     <script>
         /**
@@ -211,6 +212,12 @@
                     const container2 = document.getElementById('tai-header-container');
                     const headerGenerator = new HeaderGenerator();
                     headerGenerator.render(metadata2, container2);
+
+                    const metadata3 = await MetadataClient.json("/metadata/FORM.json");
+                    const container3 = document.getElementById('tai-main-container');
+                    const formGenerator = new FormGenerator();
+                    formGenerator.render(metadata3, container3);
+
 
                     // Update debug info
                     this.updateDebugInfo();
