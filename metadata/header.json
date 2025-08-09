@@ -1,7 +1,6 @@
 {
   "componentName": "HeaderNavigation",
-  "namespace": "headerNav",
-  "cssNamespace": "tai-header",
+  "cssNamespace": "tai",
   "jsNamespace": "TrilloAI",
   "header": {
     "height": "64px",

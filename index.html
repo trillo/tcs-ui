@@ -176,10 +176,9 @@
 
     <!-- HTTP Library (ensure this loads before TemplateFactory) -->
     <script src="utils/http.js"></script>
-    <script src="generators/header.js"></script>
-    <script src="generators/sidebarnavigation.js"></script>
     <script src="generators/form.js"></script>
     <script src="components/sidebar.js"></script>
+    <script src="components/header.js"></script>
 
     <script>
         /**
@@ -217,8 +216,14 @@
 
                     const metadata2 = await MetadataClient.json("/metadata/header.json");
                     const container2 = document.getElementById('tai-header-container');
-                    const headerGenerator = new HeaderGenerator();
-                    headerGenerator.render(metadata2, container2);
+                    const result2 = await ApiClient.loadTemplate("header");
+                    if (result2?.success) {
+                      const css2 = result2.data.css;
+                      const html2 = result2.data.html;
+                      const componentName2 = result2.data.componentName;
+                      const header = new Header();
+                      header.render(componentName2, css2, html2, container2);
+                    }
 
                     const metadata3 = await MetadataClient.json("/metadata/form.json");
                     const container3 = document.getElementById('tai-main-container');

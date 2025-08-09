@@ -1,7 +1,6 @@
 {
   "componentName": "sidebar",
-  "namespace": "sidebarNav",
-  "cssNamespace": "tai-sidebar",
+  "cssNamespace": "tai",
   "jsNamespace": "TrilloAI",
   "sidebar": {
     "width": "280px",

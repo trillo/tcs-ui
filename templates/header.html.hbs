@@ -1,0 +1,127 @@
+[main]
+<header class="{{cssNamespace}}-header {{#if behavior.showShadow}}shadow{{/if}} {{header.theme}}" id="{{cssNamespace}}-header">
+  <!-- Left Section -->
+  <div class="{{cssNamespace}}-left">
+    {{#if header.left.sidebarToggle.enabled}}
+      {{> sidebarToggle}}
+    {{/if}}
+    {{> branding}}
+  </div>
+
+  <!-- Center Section -->
+  {{#if header.center.enabled}}
+    {{> center}}
+  {{/if}}
+
+  <!-- Right Section -->
+  <div class="{{cssNamespace}}-right">
+    {{renderEach header.right.actions "action"}}
+    {{> user}}
+  </div>
+</header>
+
+[sidebarToggle]
+<button class="{{@root.cssNamespace}}-sidebar-toggle"
+        data-action="toggle-sidebar"
+        title="Toggle Navigation">
+  <i class="fas {{@root.header.left.sidebarToggle.icon}}"></i>
+</button>
+
+[branding]
+{{#if @root.header.left.branding.logo.url}}
+  <a href="{{@root.header.left.branding.logo.url}}" class="{{@root.cssNamespace}}-branding">
+{{else}}
+  <div class="{{@root.cssNamespace}}-branding">
+{{/if}}
+    <img src="{{@root.header.left.branding.logo.src}}"
+         alt="{{default @root.header.left.branding.logo.alt "Logo"}}"
+         class="{{@root.cssNamespace}}-logo"
+         onerror="this.style.display='none'">
+    <div class="{{@root.cssNamespace}}-brand-text">
+      {{#if @root.header.left.branding.showTitle}}
+        <div class="{{@root.cssNamespace}}-brand-title">{{@root.header.left.branding.title}}</div>
+      {{/if}}
+      {{#if @root.header.left.branding.showSubtitle}}
+        <div class="{{@root.cssNamespace}}-brand-subtitle">{{@root.header.left.branding.subtitle}}</div>
+      {{/if}}
+    </div>
+{{#if @root.header.left.branding.logo.url}}
+  </a>
+{{else}}
+  </div>
+{{/if}}
+
+[center]
+{{#if (eq @root.header.center.content.type "search")}}
+  <div class="{{@root.cssNamespace}}-center">
+    <div class="{{@root.cssNamespace}}-search-container">
+      <i class="fas fa-search {{@root.cssNamespace}}-search-icon"></i>
+      <input type="text"
+             class="{{@root.cssNamespace}}-search-input"
+             placeholder="{{@root.header.center.content.searchPlaceholder}}"
+             data-action="search">
+    </div>
+  </div>
+{{else}}
+  <div class="{{@root.cssNamespace}}-center"></div>
+{{/if}}
+
+[action]
+<button class="{{@root.cssNamespace}}-action"
+        data-action="{{action}}"
+        title="{{tooltip}}">
+  <i class="fas {{icon}}"></i>
+  {{#if badge}}
+    <span class="{{@root.cssNamespace}}-action-badge {{badge.color}}">
+      {{#if (gt badge.count 99)}}99+{{else}}{{badge.count}}{{/if}}
+    </span>
+  {{/if}}
+  <div class="{{@root.cssNamespace}}-tooltip">{{tooltip}}</div>
+</button>
+
+[user]
+<div class="{{cssNamespace}}-user" data-action="toggle-user-dropdown">
+  <img src="{{header.right.user.avatar.src}}"
+       alt="{{default header.right.user.avatar.alt header.right.user.name}}"
+       class="{{cssNamespace}}-user-avatar"
+       onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+  <div class="{{cssNamespace}}-user-avatar-fallback" style="display: none;">
+    {{header.right.user.avatar.fallbackText}}
+  </div>
+
+  <div class="{{cssNamespace}}-user-info">
+    <div class="{{cssNamespace}}-user-name">{{header.right.user.name}}</div>
+    <div class="{{cssNamespace}}-user-role">{{header.right.user.role}}</div>
+  </div>
+
+  <i class="fas fa-chevron-down {{cssNamespace}}-user-dropdown-icon"></i>
+
+  {{#if header.right.user.dropdown.enabled}}
+    {{> userDropdown}}
+  {{/if}}
+</div>
+
+[userDropdown]
+<div class="{{@root.cssNamespace}}-user-dropdown" id="{{@root.cssNamespace}}-user-dropdown">
+  {{#each @root.header.right.user.dropdown.items}}
+    {{#if (eq type "separator")}}
+      <div class="{{@root.cssNamespace}}-dropdown-separator"></div>
+    {{else}}
+      {{#if url}}
+        <a href="{{url}}"
+           class="{{@root.cssNamespace}}-dropdown-item {{#if (eq id "logout")}}logout{{/if}}"
+           data-action="{{action}}"
+           {{#if external}}target="_blank" rel="noopener noreferrer"{{/if}}>
+          <i class="fas {{icon}}"></i>
+          {{label}}
+        </a>
+      {{else}}
+        <button class="{{@root.cssNamespace}}-dropdown-item {{#if (eq id "logout")}}logout{{/if}}"
+                data-action="{{action}}">
+          <i class="fas {{icon}}"></i>
+          {{label}}
+        </button>
+      {{/if}}
+    {{/if}}
+  {{/each}}
+</div>
