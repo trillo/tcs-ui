@@ -1,98 +1,4 @@
-{{!-- Branding partial --}}
-{{#*inline "branding"}}
-  <div class="{{cssNamespace}}-brand">
-    <img src="{{sidebar.branding.logo.src}}"
-         alt="{{default sidebar.branding.logo.alt "Logo"}}"
-         class="{{cssNamespace}}-brand-logo">
-    <div class="{{cssNamespace}}-brand-text">
-      <div class="{{cssNamespace}}-brand-title">{{sidebar.branding.title}}</div>
-      {{#if sidebar.branding.subtitle}}
-        <div class="{{cssNamespace}}-brand-subtitle">{{sidebar.branding.subtitle}}</div>
-      {{/if}}
-    </div>
-  </div>
-{{/inline}}
-
-{{!-- Navigation item partial --}}
-{{#*inline "navItem"}}
-  {{#if (eq type "separator")}}
-    <div class="{{../cssNamespace}}-separator">
-      <div class="{{../cssNamespace}}-separator-line"></div>
-      {{#if label}}
-        <div class="{{../cssNamespace}}-separator-label">{{label}}</div>
-      {{/if}}
-    </div>
-  {{else}}
-    <div class="{{../cssNamespace}}-nav-item">
-      {{#if notification}}
-        <div class="{{../cssNamespace}}-nav-notification"></div>
-      {{/if}}
-
-      <{{#if url}}a href="{{url}}"{{else}}button{{/if}}
-         class="{{../cssNamespace}}-nav-link {{#if active}}active{{/if}}"
-         {{#if id}}id="{{../cssNamespace}}-nav-{{id}}"{{/if}}
-         {{#if children}}data-action="toggle-submenu" data-item-id="{{id}}"{{/if}}
-         {{#if external}}target="_blank" rel="noopener noreferrer"{{/if}}>
-
-        {{#if icon}}<i class="fas {{icon}} {{../cssNamespace}}-nav-icon"></i>{{/if}}
-        <span class="{{../cssNamespace}}-nav-text">{{label}}</span>
-
-        {{#if count}}
-          <span class="{{../cssNamespace}}-nav-count">{{count}}</span>
-        {{/if}}
-
-        {{#if badge}}
-          <span class="{{../cssNamespace}}-nav-badge {{badge.color}}">{{badge.text}}</span>
-        {{/if}}
-
-        {{#if children}}
-          <i class="fas fa-chevron-right {{../cssNamespace}}-nav-arrow"></i>
-        {{/if}}
-      </{{#if url}}a{{else}}button{{/if}}>
-
-      {{#if children}}
-        <div class="{{../cssNamespace}}-nav-submenu" id="{{../cssNamespace}}-submenu-{{id}}">
-          {{#each children}}
-            {{> navItem}}
-          {{/each}}
-        </div>
-      {{/if}}
-    </div>
-  {{/if}}
-{{/inline}}
-
-{{!-- Footer partial (user info block) --}}
-{{#*inline "footer"}}
-  {{#each sidebar.footer.content}}
-    {{#if (eq type "user-info")}}
-      <div class="{{../cssNamespace}}-footer">
-        <div class="{{../cssNamespace}}-user-info" data-action="toggle-user-dropdown">
-          <img src="{{user.avatar}}" alt="{{user.name}}" class="{{../cssNamespace}}-user-avatar">
-          <div class="{{../cssNamespace}}-user-details">
-            <div class="{{../cssNamespace}}-user-name">{{user.name}}</div>
-            <div class="{{../cssNamespace}}-user-email">{{user.email}}</div>
-          </div>
-
-          {{#if showDropdown}}
-            <div class="{{../cssNamespace}}-user-dropdown" id="{{../cssNamespace}}-user-dropdown">
-              {{#each dropdownItems}}
-                {{#if (eq type "separator")}}
-                  <div class="{{../../cssNamespace}}-dropdown-separator"></div>
-                {{else}}
-                  <button class="{{../../cssNamespace}}-dropdown-item" data-action="{{action}}">
-                    <i class="fas {{icon}}"></i>{{label}}
-                  </button>
-                {{/if}}
-              {{/each}}
-            </div>
-          {{/if}}
-        </div>
-      </div>
-    {{/if}}
-  {{/each}}
-{{/inline}}
-
-<!-- Main -->
+[main]
 <aside class="{{cssNamespace}}-sidebar {{sidebar.theme}}" id="{{cssNamespace}}-sidebar">
   {{#if sidebar.showToggle}}
     <button class="{{cssNamespace}}-toggle" data-action="toggle">
@@ -112,3 +18,89 @@
     {{> footer}}
   {{/if}}
 </aside>
+
+[branding]
+<div class="{{cssNamespace}}-brand">
+  <img src="{{sidebar.branding.logo.src}}"
+       alt="{{default sidebar.branding.logo.alt "Logo"}}"
+       class="{{cssNamespace}}-brand-logo">
+  <div class="{{cssNamespace}}-brand-text">
+    <div class="{{cssNamespace}}-brand-title">{{sidebar.branding.title}}</div>
+    {{#if sidebar.branding.subtitle}}
+      <div class="{{cssNamespace}}-brand-subtitle">{{sidebar.branding.subtitle}}</div>
+    {{/if}}
+  </div>
+</div>
+
+[navItem]
+{{#if (eq type "separator")}}
+  <div class="{{@root.cssNamespace}}-separator">
+    <div class="{{@root.cssNamespace}}-separator-line"></div>
+    {{#if label}}
+      <div class="{{@root.cssNamespace}}-separator-label">{{label}}</div>
+    {{/if}}
+  </div>
+{{else}}
+  <div class="{{@root.cssNamespace}}-nav-item">
+    {{#if notification}}
+      <div class="{{@root.cssNamespace}}-nav-notification"></div>
+    {{/if}}
+
+    <{{#if url}}a href="{{url}}"{{else}}button{{/if}}
+       class="{{@root.cssNamespace}}-nav-link {{#if active}}active{{/if}}"
+       {{#if id}}id="{{@root.cssNamespace}}-nav-{{id}}"{{/if}}
+       {{#if children}}data-action="toggle-submenu" data-item-id="{{id}}"{{/if}}
+       {{#if external}}target="_blank" rel="noopener noreferrer"{{/if}}>
+
+      {{#if icon}}<i class="fas {{icon}} {{@root.cssNamespace}}-nav-icon"></i>{{/if}}
+      <span class="{{@root.cssNamespace}}-nav-text">{{label}}</span>
+
+      {{#if count}}
+        <span class="{{@root.cssNamespace}}-nav-count">{{count}}</span>
+      {{/if}}
+
+      {{#if badge}}
+        <span class="{{@root.cssNamespace}}-nav-badge {{badge.color}}">{{badge.text}}</span>
+      {{/if}}
+
+      {{#if children}}
+        <i class="fas fa-chevron-right {{@root.cssNamespace}}-nav-arrow"></i>
+      {{/if}}
+    </{{#if url}}a{{else}}button{{/if}}>
+
+    {{#if children}}
+      <div class="{{@root.cssNamespace}}-nav-submenu" id="{{@root.cssNamespace}}-submenu-{{id}}">
+        {{renderEach children "navItem"}}
+      </div>
+    {{/if}}
+  </div>
+{{/if}}
+
+[footer]
+{{#each sidebar.footer.content}}
+  {{#if (eq type "user-info")}}
+    <div class="{{../cssNamespace}}-footer">
+      <div class="{{../cssNamespace}}-user-info" data-action="toggle-user-dropdown">
+        <img src="{{user.avatar}}" alt="{{user.name}}" class="{{../cssNamespace}}-user-avatar">
+        <div class="{{../cssNamespace}}-user-details">
+          <div class="{{../cssNamespace}}-user-name">{{user.name}}</div>
+          <div class="{{../cssNamespace}}-user-email">{{user.email}}</div>
+        </div>
+
+        {{#if showDropdown}}
+          <div class="{{../cssNamespace}}-user-dropdown" id="{{../cssNamespace}}-user-dropdown">
+            {{#each dropdownItems}}
+              {{#if (eq type "separator")}}
+                <div class="{{../../cssNamespace}}-dropdown-separator"></div>
+              {{else}}
+                <button class="{{../../cssNamespace}}-dropdown-item" data-action="{{action}}">
+                  <i class="fas {{icon}}"></i>{{label}}
+                </button>
+              {{/if}}
+            {{/each}}
+          </div>
+        {{/if}}
+      </div>
+    </div>
+  {{/if}}
+{{/each}}

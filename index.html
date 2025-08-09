@@ -179,6 +179,7 @@
     <script src="generators/header.js"></script>
     <script src="generators/sidebarnavigation.js"></script>
     <script src="generators/form.js"></script>
+    <script src="components/sidebar.js"></script>
 
     <script>
         /**
@@ -203,17 +204,23 @@
                     // Load all components
                     //await this.loadAllComponents();
                     setupHttpClients();
-                    const metadata = await MetadataClient.json("/metadata/SIDEBAR.json");
+                    const metadata = await MetadataClient.json("/metadata/sidebar.json");
                     const container = document.getElementById('tai-nav-container');
-                    const sidebarGenerator = new SidebarNavigationGenerator();
-                    sidebarGenerator.render(metadata, container);
+                    const result = await ApiClient.loadTemplate("sidebar");
+                    if (result?.success) {
+                      const css = result.data.css;
+                      const html = result.data.html;
+                      const componentName = result.data.componentName;
+                      const sidebar = new Sidebar();
+                      sidebar.render(componentName, css, html, container);
+                    }
 
-                    const metadata2 = await MetadataClient.json("/metadata/HEADER.json");
+                    const metadata2 = await MetadataClient.json("/metadata/header.json");
                     const container2 = document.getElementById('tai-header-container');
                     const headerGenerator = new HeaderGenerator();
                     headerGenerator.render(metadata2, container2);
 
-                    const metadata3 = await MetadataClient.json("/metadata/FORM.json");
+                    const metadata3 = await MetadataClient.json("/metadata/form.json");
                     const container3 = document.getElementById('tai-main-container');
                     const formGenerator = new FormGenerator();
                     formGenerator.render(metadata3, container3);

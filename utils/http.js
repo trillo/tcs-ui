@@ -213,6 +213,11 @@ class TrilloHTTPClient {
         return this.request(url, { ...options, method: 'DELETE' });
     }
 
+    async loadTemplate(componentName) {
+      const response = await this.json(`/api/v2.0/templates/` + componentName);
+      return response;
+    }
+
     /**
      * Upload file
      */
