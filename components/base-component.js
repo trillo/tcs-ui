@@ -1006,6 +1006,13 @@ class BaseComponent {
             console.log(`[${this.constructor.name}]`, ...args);
         }
     }
+
+    /**
+     * Get preview options for component - MUST be implemented by subclasses
+     */
+    static getPreviewOptions() {
+        throw new Error(`${this.name} must implement static getPreviewOptions() method for preview mode`);
+    }
 }
 
 // ========================================

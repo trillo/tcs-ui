@@ -1070,6 +1070,37 @@ class Login extends BaseComponent {
         // Call parent destroy
         super.destroy();
     }
+
+    /**
+     * Get default options for preview mode
+     */
+    static getPreviewOptions() {
+        return {
+            ui: {
+                title: 'Welcome Back',
+                subtitle: 'Sign in to your account',
+                showRememberMe: true,
+                showForgotPassword: true,
+                showSignUpLink: true,
+                modalErrorType: 'inline'
+            },
+            events: {
+                onLoginSuccess: (data) => {
+                    console.log('Preview: Login successful', data);
+                    alert('Login successful! (Preview Mode)');
+                },
+                onLoginError: (error) => {
+                    console.log('Preview: Login error', error);
+                },
+                onForgotPassword: () => {
+                    alert('Preview: Forgot password functionality');
+                },
+                onSignUp: () => {
+                    alert('Preview: Sign up functionality');
+                }
+            }
+        };
+    }
 }
 
 // ========================================
