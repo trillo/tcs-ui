@@ -27,7 +27,7 @@ class Login {
         };
 
         this.formData = {
-            email: '',
+            userIdOrEmail: '',
             password: '',
             rememberMe: false
         };
@@ -101,23 +101,23 @@ class Login {
                     </div>
 
                     <form class="${Login.cssNamespace}__form" id="${Login.cssNamespace}-form">
-                        <!-- Email Field -->
+                        <!-- User ID or Email Field -->
                         <div class="form-group">
-                            <label class="form-label" for="${Login.cssNamespace}-email">
-                                <i class="fas fa-envelope"></i>
-                                Email Address
+                            <label class="form-label" for="${Login.cssNamespace}-userIdOrEmail">
+                                <i class="fas fa-user"></i>
+                                User ID or Email
                             </label>
                             <input
-                                type="email"
-                                id="${Login.cssNamespace}-email"
-                                name="email"
+                                type="text"
+                                id="${Login.cssNamespace}-userIdOrEmail"
+                                name="userIdOrEmail"
                                 class="form-control ${Login.cssNamespace}__input"
-                                placeholder="Enter your email"
-                                value="${this.formData.email}"
+                                placeholder="Enter your user ID or email"
+                                value="${this.formData.userIdOrEmail}"
                                 required
-                                autocomplete="email"
+                                autocomplete="username"
                             >
-                            <div class="${Login.cssNamespace}__error" id="${Login.cssNamespace}-email-error"></div>
+                            <div class="${Login.cssNamespace}__error" id="${Login.cssNamespace}-userIdOrEmail-error"></div>
                         </div>
 
                         <!-- Password Field -->
@@ -480,16 +480,16 @@ class Login {
         }
 
         // Real-time form validation
-        const emailInput = this.container.querySelector(`#${Login.cssNamespace}-email`);
+        const userIdOrEmailInput = this.container.querySelector(`#${Login.cssNamespace}-userIdOrEmail`);
         const passwordInput = this.container.querySelector(`#${Login.cssNamespace}-password`);
 
-        if (emailInput) {
-            const emailInputListener = () => this.validateEmail();
-            const emailBlurListener = () => this.validateEmail();
-            emailInput.addEventListener('input', emailInputListener);
-            emailInput.addEventListener('blur', emailBlurListener);
-            this.eventListeners.push({ element: emailInput, event: 'input', listener: emailInputListener });
-            this.eventListeners.push({ element: emailInput, event: 'blur', listener: emailBlurListener });
+        if (userIdOrEmailInput) {
+            const userIdOrEmailInputListener = () => this.validateUserIdOrEmail();
+            const userIdOrEmailBlurListener = () => this.validateUserIdOrEmail();
+            userIdOrEmailInput.addEventListener('input', userIdOrEmailInputListener);
+            userIdOrEmailInput.addEventListener('blur', userIdOrEmailBlurListener);
+            this.eventListeners.push({ element: userIdOrEmailInput, event: 'input', listener: userIdOrEmailInputListener });
+            this.eventListeners.push({ element: userIdOrEmailInput, event: 'blur', listener: userIdOrEmailBlurListener });
         }
 
         if (passwordInput) {
@@ -542,7 +542,7 @@ class Login {
         // Collect form data
         const formData = new FormData(e.target);
         this.formData = {
-            email: formData.get('email'),
+            userIdOrEmail: formData.get('userIdOrEmail'),
             password: formData.get('password'),
             rememberMe: formData.get('rememberMe') === 'on'
         };
@@ -625,33 +625,49 @@ class Login {
      * Validate form
      */
     validateForm() {
-        const isEmailValid = this.validateEmail();
+        const isUserIdOrEmailValid = this.validateUserIdOrEmail();
         const isPasswordValid = this.validatePassword();
 
-        return isEmailValid && isPasswordValid;
+        return isUserIdOrEmailValid && isPasswordValid;
     }
 
     /**
-     * Validate email field
+     * Validate userIdOrEmail field
      */
-    validateEmail() {
-        const emailInput = this.container.querySelector(`#${Login.cssNamespace}-email`);
+    validateUserIdOrEmail() {
+        const userIdOrEmailInput = this.container.querySelector(`#${Login.cssNamespace}-userIdOrEmail`);
 
-        if (!emailInput) return true;
+        if (!userIdOrEmailInput) return true;
 
-        const email = emailInput.value.trim();
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        const userIdOrEmail = userIdOrEmailInput.value.trim();
 
-        if (!email) {
-            this.showFieldError('email', 'Email is required');
+        if (!userIdOrEmail) {
+            this.showFieldError('userIdOrEmail', 'User ID or Email is required');
             return false;
-        } else if (!emailRegex.test(email)) {
-            this.showFieldError('email', 'Please enter a valid email address');
-            return false;
-        } else {
-            this.clearFieldError('email');
-            return true;
         }
+
+        // Check if it contains @ symbol (indicating it's an email)
+        if (userIdOrEmail.includes('@')) {
+            // Validate as email
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(userIdOrEmail)) {
+                this.showFieldError('userIdOrEmail', 'Please enter a valid email address');
+                return false;
+            }
+        } else {
+            // Validate as user ID (basic validation - no spaces, minimum length)
+            if (userIdOrEmail.length < 3) {
+                this.showFieldError('userIdOrEmail', 'User ID must be at least 3 characters');
+                return false;
+            }
+            if (/\s/.test(userIdOrEmail)) {
+                this.showFieldError('userIdOrEmail', 'User ID cannot contain spaces');
+                return false;
+            }
+        }
+
+        this.clearFieldError('userIdOrEmail');
+        return true;
     }
 
     /**
@@ -756,10 +772,10 @@ class Login {
      * Initialize component after render
      */
     initialize() {
-        // Focus on email input when component loads
-        const emailInput = this.container.querySelector(`#${Login.cssNamespace}-email`);
-        if (emailInput) {
-            emailInput.focus();
+        // Focus on userIdOrEmail input when component loads
+        const userIdOrEmailInput = this.container.querySelector(`#${Login.cssNamespace}-userIdOrEmail`);
+        if (userIdOrEmailInput) {
+            userIdOrEmailInput.focus();
         }
     }
 
