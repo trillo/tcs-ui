@@ -39,6 +39,7 @@
     <script src="data-managers/websocket-data-manager.js"></script>
     <script src="utils/app-config.js"></script>
     <script src="components/component-manager.js"></script>
+    <script src="components/base-component.js"></script>
     <script src="components/login.js"></script>
 
     <script>
@@ -62,8 +63,15 @@
         // 3. Register components
         componentManager.registerComponent('login', Login, {
             events: {
-                onLoginSuccess: (response, formData) => appConfig.handleLoginSuccess(response, formData),
-                onLoginError: (error, formData) => appConfig.handleLoginError(error, formData)
+                onLoginSuccess: (userData) => {
+                    window.location.href = '/dashboard';
+                },
+                onForgotPassword: () => {
+                    // Custom forgot password handling
+                }
+            },
+            ui: {
+                errorDisplayType: 'inline' // Use modal instead of inline errors
             }
         });
 
