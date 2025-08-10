@@ -14,7 +14,7 @@ class HTTPClient {
             'Content-Type': 'application/json'
         };
         this.timeout = 30000; // 30 seconds
-        this.retryAttempts = 3;
+        this.retryAttempts = 1;
         this.retryDelay = 1000; // 1 second
         this.mockMode = false;
         this.mockData = new Map();
@@ -46,7 +46,7 @@ class HTTPClient {
         if (config.baseURL) this.baseURL = config.baseURL.replace(/\/$/, '');
         if (config.headers) this.defaultHeaders = { ...this.defaultHeaders, ...config.headers };
         if (config.timeout) this.timeout = config.timeout;
-        if (config.retryAttempts) this.retryAttempts = config.retryAttempts;
+        if (config.retryAttempts !== undefined) this.retryAttempts = config.retryAttempts;
         if (config.retryDelay) this.retryDelay = config.retryDelay;
         if (config.debug !== undefined) this.debug = config.debug;
 
@@ -343,7 +343,15 @@ class HTTPClient {
                         }
                     }
 
-                    throw this.createErrorResponse(error, fullUrl, config);
+                    // Return error object with success=false instead of throwing
+                    return {
+                        success: false,
+                        error: error.message,
+                        status: error.status || 0,
+                        statusText: error.statusText || 'Unknown Error',
+                        url: fullUrl,
+                        timestamp: new Date().toISOString()
+                    };
                 }
 
                 // Wait before retry
@@ -409,11 +417,15 @@ class HTTPClient {
             }
 
             // Check if response is ok
-            if (!response.ok) {
-                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            if (!responseObj.data) {
+                const error = {};
+                error.success = false;
+                error.message = response.statusText;
+                return error;
             }
 
-            return responseObj;
+            // SUCCESS: Return unwrapped data instead of responseObj
+            return responseObj.data;
 
         } catch (error) {
             clearTimeout(timeoutId);
@@ -722,31 +734,6 @@ class HTTPClient {
                 error: this.interceptors.error.length
             }
         };
-    }
-}
-
-function setupHttpClients() {
-    try {
-        // Metadata Server Client
-        window.MetadataClient = new HTTPClient();
-        window.MetadataClient.configure({
-            baseURL: 'http://localhost:8080',
-            debug: this.debug,
-            timeout: 15000
-        });
-
-        // Application Data Client (use main instance)
-        window.ApiClient = new HTTPClient();
-        window.ApiClient.configure({
-            baseURL: 'https://localhost:9020',
-            debug: this.debug,
-            timeout: 30000
-        });
-
-        console.log('HTTP clients configured successfully and made globally available');
-
-    } catch (error) {
-        console.log('Error setting up HTTP clients:', error);
     }
 }
 

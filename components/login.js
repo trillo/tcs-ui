@@ -1,6 +1,6 @@
 /**
- * Login Component - Simple class for authentication
- * Does NOT extend BaseComponent - handles its own form logic and API calls
+ * Login Component - Enhanced with proper error handling and display
+ * Handles its own error display responsibility instead of relying on external callbacks
  */
 
 class Login {
@@ -15,11 +15,12 @@ class Login {
                 subtitle: 'Sign in to your account',
                 showRememberMe: true,
                 showForgotPassword: true,
-                showSignUpLink: true
+                showSignUpLink: true,
+                errorDisplayType: 'inline' // 'inline' or 'modal'
             },
             events: {
                 onLoginSuccess: null,
-                onLoginError: null,
+                onLoginError: null, // Still available but Login handles display first
                 onForgotPassword: null,
                 onSignUp: null
             },
@@ -35,6 +36,8 @@ class Login {
         this.validationErrors = {};
         this.eventListeners = [];
         this.isLoading = false;
+        this.loginAttempts = 0;
+        this.maxAttempts = 5;
 
         this.init();
     }
@@ -44,18 +47,10 @@ class Login {
      */
     async init() {
         try {
-            // Inject CSS once
             await this.loadCSS();
-
-            // Render component
             this.render();
-
-            // Setup event listeners
             this.addEventListeners();
-
-            // Initialize (focus on email input)
             this.initialize();
-
         } catch (error) {
             this.handleError(error);
         }
@@ -84,7 +79,7 @@ class Login {
     }
 
     /**
-     * Generate HTML
+     * Generate HTML with enhanced error display
      */
     generateHTML() {
         const { title, subtitle, showRememberMe, showForgotPassword, showSignUpLink } = this.options.ui;
@@ -98,6 +93,32 @@ class Login {
                         </div>
                         <h1 class="${Login.cssNamespace}__title">${title}</h1>
                         <p class="${Login.cssNamespace}__subtitle text-secondary">${subtitle}</p>
+                    </div>
+
+                    <!-- Enhanced Error Display Area -->
+                    <div class="${Login.cssNamespace}__error-container" id="${Login.cssNamespace}-error-container" style="display: none;">
+                        <div class="${Login.cssNamespace}__error-content">
+                            <div class="${Login.cssNamespace}__error-icon">
+                                <i class="fas fa-exclamation-triangle"></i>
+                            </div>
+                            <div class="${Login.cssNamespace}__error-message">
+                                <div class="${Login.cssNamespace}__error-title">Login Failed</div>
+                                <div class="${Login.cssNamespace}__error-text"></div>
+                            </div>
+                            <button class="${Login.cssNamespace}__error-close" type="button" aria-label="Close error">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                        <div class="${Login.cssNamespace}__error-actions">
+                            <button class="${Login.cssNamespace}__error-retry btn btn-sm btn-primary" type="button">
+                                <i class="fas fa-redo"></i>
+                                Try Again
+                            </button>
+                            <button class="${Login.cssNamespace}__error-forgot btn btn-sm btn-outline" type="button">
+                                <i class="fas fa-key"></i>
+                                Forgot Password?
+                            </button>
+                        </div>
                     </div>
 
                     <form class="${Login.cssNamespace}__form" id="${Login.cssNamespace}-form">
@@ -204,10 +225,42 @@ class Login {
                         ` : ''}
                     </form>
 
-                    <!-- General Error Message -->
-                    <div class="${Login.cssNamespace}__general-error" id="${Login.cssNamespace}-general-error" style="display: none;">
-                        <i class="fas fa-exclamation-triangle"></i>
-                        <span class="error-text"></span>
+                    <!-- Security Info for Multiple Failed Attempts -->
+                    <div class="${Login.cssNamespace}__security-info" id="${Login.cssNamespace}-security-info" style="display: none;">
+                        <div class="${Login.cssNamespace}__security-content">
+                            <i class="fas fa-shield-alt"></i>
+                            <div>
+                                <strong>Account Security Notice</strong>
+                                <p>Multiple failed login attempts detected. Please verify your credentials or reset your password.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Error Modal (Alternative Display) -->
+                <div class="${Login.cssNamespace}__error-modal" id="${Login.cssNamespace}-error-modal" style="display: none;">
+                    <div class="${Login.cssNamespace}__error-modal-backdrop"></div>
+                    <div class="${Login.cssNamespace}__error-modal-content">
+                        <div class="${Login.cssNamespace}__error-modal-header">
+                            <div class="${Login.cssNamespace}__error-modal-icon">
+                                <i class="fas fa-exclamation-circle"></i>
+                            </div>
+                            <h3>Login Failed</h3>
+                            <button class="${Login.cssNamespace}__error-modal-close" type="button">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                        <div class="${Login.cssNamespace}__error-modal-body">
+                            <p class="${Login.cssNamespace}__error-modal-text"></p>
+                        </div>
+                        <div class="${Login.cssNamespace}__error-modal-footer">
+                            <button class="${Login.cssNamespace}__error-modal-retry btn btn-primary" type="button">
+                                Try Again
+                            </button>
+                            <button class="${Login.cssNamespace}__error-modal-forgot btn btn-outline" type="button">
+                                Forgot Password?
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -215,7 +268,7 @@ class Login {
     }
 
     /**
-     * Get inline CSS
+     * Enhanced CSS with error display styles
      */
     getInlineCSS() {
         return `
@@ -227,6 +280,7 @@ class Login {
                 justify-content: center;
                 padding: var(--spacing-lg);
                 background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                position: relative;
             }
 
             .${Login.cssNamespace}__container {
@@ -237,6 +291,7 @@ class Login {
                 box-shadow: var(--shadow-xl);
                 padding: var(--spacing-xxl);
                 animation: slideUp 0.4s ease-out;
+                position: relative;
             }
 
             @keyframes slideUp {
@@ -282,7 +337,271 @@ class Login {
                 margin: 0;
             }
 
-            /* Form */
+            /* Enhanced Error Display */
+            .${Login.cssNamespace}__error-container {
+                background: linear-gradient(135deg, rgba(244, 67, 54, 0.08) 0%, rgba(244, 67, 54, 0.12) 100%);
+                border: 1px solid rgba(244, 67, 54, 0.2);
+                border-radius: var(--radius-lg);
+                padding: var(--spacing-lg);
+                margin-bottom: var(--spacing-lg);
+                animation: errorSlideIn 0.3s ease-out;
+                box-shadow: 0 4px 12px rgba(244, 67, 54, 0.1);
+            }
+
+            @keyframes errorSlideIn {
+                from {
+                    opacity: 0;
+                    transform: translateY(-10px);
+                    max-height: 0;
+                    padding-top: 0;
+                    padding-bottom: 0;
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                    max-height: 200px;
+                    padding-top: var(--spacing-lg);
+                    padding-bottom: var(--spacing-lg);
+                }
+            }
+
+            .${Login.cssNamespace}__error-content {
+                display: flex;
+                align-items: flex-start;
+                gap: var(--spacing-md);
+                margin-bottom: var(--spacing-md);
+            }
+
+            .${Login.cssNamespace}__error-icon {
+                color: #d32f2f;
+                font-size: 18px;
+                flex-shrink: 0;
+                margin-top: 2px;
+                width: 20px;
+                text-align: center;
+            }
+
+            .${Login.cssNamespace}__error-message {
+                flex: 1;
+            }
+
+            .${Login.cssNamespace}__error-title {
+                font-weight: var(--font-weight-semibold);
+                color: #d32f2f;
+                margin-bottom: var(--spacing-xs);
+                font-size: var(--font-size-sm);
+            }
+
+            .${Login.cssNamespace}__error-text {
+                color: #b71c1c;
+                font-size: var(--font-size-sm);
+                line-height: 1.4;
+            }
+
+            .${Login.cssNamespace}__error-close {
+                background: none;
+                border: none;
+                color: #d32f2f;
+                cursor: pointer;
+                padding: var(--spacing-xs);
+                border-radius: var(--radius-sm);
+                transition: all var(--transition-normal);
+                flex-shrink: 0;
+                width: 24px;
+                height: 24px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .${Login.cssNamespace}__error-close:hover {
+                background: rgba(244, 67, 54, 0.1);
+                color: #b71c1c;
+            }
+
+            .${Login.cssNamespace}__error-actions {
+                display: flex;
+                gap: var(--spacing-sm);
+                justify-content: flex-start;
+                flex-wrap: wrap;
+            }
+
+            .${Login.cssNamespace}__error-retry,
+            .${Login.cssNamespace}__error-forgot {
+                font-size: var(--font-size-xs);
+                padding: var(--spacing-xs) var(--spacing-sm);
+                border-radius: var(--radius-md);
+                font-weight: var(--font-weight-medium);
+                transition: all var(--transition-normal);
+                border: 1px solid transparent;
+                display: inline-flex;
+                align-items: center;
+                gap: var(--spacing-xs);
+            }
+
+            .${Login.cssNamespace}__error-retry {
+                background: #1976d2;
+                color: white;
+                border-color: #1976d2;
+            }
+
+            .${Login.cssNamespace}__error-retry:hover {
+                background: #1565c0;
+                border-color: #1565c0;
+                transform: translateY(-1px);
+                box-shadow: 0 2px 8px rgba(25, 118, 210, 0.3);
+            }
+
+            .${Login.cssNamespace}__error-forgot {
+                background: transparent;
+                color: #1976d2;
+                border-color: #1976d2;
+            }
+
+            .${Login.cssNamespace}__error-forgot:hover {
+                background: rgba(25, 118, 210, 0.1);
+                color: #1565c0;
+                border-color: #1565c0;
+            }
+
+            /* Security Info */
+            .${Login.cssNamespace}__security-info {
+                background: linear-gradient(135deg, #fff3cd, #ffeaa7);
+                border: 1px solid #ffeaa7;
+                border-radius: var(--radius-md);
+                padding: var(--spacing-md);
+                margin-top: var(--spacing-md);
+                animation: errorSlideIn 0.3s ease-out;
+            }
+
+            .${Login.cssNamespace}__security-content {
+                display: flex;
+                align-items: flex-start;
+                gap: var(--spacing-md);
+                color: #856404;
+            }
+
+            .${Login.cssNamespace}__security-content i {
+                color: #856404;
+                font-size: 18px;
+                margin-top: 2px;
+            }
+
+            .${Login.cssNamespace}__security-content strong {
+                display: block;
+                margin-bottom: var(--spacing-xs);
+            }
+
+            .${Login.cssNamespace}__security-content p {
+                margin: 0;
+                font-size: var(--font-size-sm);
+                line-height: 1.4;
+            }
+
+            /* Error Modal */
+            .${Login.cssNamespace}__error-modal {
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                z-index: 1000;
+                animation: modalFadeIn 0.2s ease-out;
+            }
+
+            @keyframes modalFadeIn {
+                from { opacity: 0; }
+                to { opacity: 1; }
+            }
+
+            .${Login.cssNamespace}__error-modal-backdrop {
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0, 0, 0, 0.5);
+                backdrop-filter: blur(2px);
+            }
+
+            .${Login.cssNamespace}__error-modal-content {
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background: white;
+                border-radius: var(--radius-xl);
+                box-shadow: var(--shadow-xl);
+                max-width: 400px;
+                width: 90%;
+                animation: modalSlideIn 0.3s ease-out;
+            }
+
+            @keyframes modalSlideIn {
+                from {
+                    opacity: 0;
+                    transform: translate(-50%, -50%) scale(0.9);
+                }
+                to {
+                    opacity: 1;
+                    transform: translate(-50%, -50%) scale(1);
+                }
+            }
+
+            .${Login.cssNamespace}__error-modal-header {
+                display: flex;
+                align-items: center;
+                gap: var(--spacing-md);
+                padding: var(--spacing-lg);
+                border-bottom: 1px solid var(--color-border);
+            }
+
+            .${Login.cssNamespace}__error-modal-icon {
+                color: var(--color-error);
+                font-size: 24px;
+            }
+
+            .${Login.cssNamespace}__error-modal-header h3 {
+                flex: 1;
+                margin: 0;
+                color: var(--color-text-primary);
+                font-size: var(--font-size-lg);
+            }
+
+            .${Login.cssNamespace}__error-modal-close {
+                background: none;
+                border: none;
+                color: var(--color-text-secondary);
+                cursor: pointer;
+                padding: var(--spacing-xs);
+                border-radius: var(--radius-sm);
+                transition: all var(--transition-normal);
+            }
+
+            .${Login.cssNamespace}__error-modal-close:hover {
+                background: var(--color-background);
+                color: var(--color-text-primary);
+            }
+
+            .${Login.cssNamespace}__error-modal-body {
+                padding: var(--spacing-lg);
+            }
+
+            .${Login.cssNamespace}__error-modal-text {
+                margin: 0;
+                color: var(--color-text-secondary);
+                line-height: 1.5;
+            }
+
+            .${Login.cssNamespace}__error-modal-footer {
+                display: flex;
+                gap: var(--spacing-sm);
+                justify-content: flex-end;
+                padding: var(--spacing-lg);
+                border-top: 1px solid var(--color-border);
+            }
+
+            /* Form Styles */
             .${Login.cssNamespace}__form {
                 margin-bottom: var(--spacing-lg);
             }
@@ -416,7 +735,7 @@ class Login {
                 font-size: var(--font-size-sm);
             }
 
-            /* Error Messages */
+            /* Field Error Messages */
             .${Login.cssNamespace}__error {
                 color: var(--color-error);
                 font-size: var(--font-size-xs);
@@ -425,19 +744,6 @@ class Login {
                 display: flex;
                 align-items: center;
                 gap: var(--spacing-xs);
-            }
-
-            .${Login.cssNamespace}__general-error {
-                background: rgba(244, 67, 54, 0.1);
-                border: 1px solid rgba(244, 67, 54, 0.3);
-                border-radius: var(--radius-md);
-                padding: var(--spacing-md);
-                color: var(--color-error);
-                font-size: var(--font-size-sm);
-                display: flex;
-                align-items: center;
-                gap: var(--spacing-sm);
-                margin-top: var(--spacing-md);
             }
 
             /* Responsive */
@@ -454,6 +760,14 @@ class Login {
                     flex-direction: column;
                     align-items: flex-start;
                 }
+
+                .${Login.cssNamespace}__error-actions {
+                    flex-direction: column;
+                }
+
+                .${Login.cssNamespace}__error-modal-content {
+                    width: 95%;
+                }
             }
 
             /* Loading state for submit button */
@@ -464,7 +778,7 @@ class Login {
     }
 
     /**
-     * Add event listeners
+     * Enhanced event listeners with error handling
      */
     addEventListeners() {
         const form = this.container.querySelector(`#${Login.cssNamespace}-form`);
@@ -531,13 +845,79 @@ class Login {
             rememberMeCheckbox.addEventListener('change', checkboxListener);
             this.eventListeners.push({ element: rememberMeCheckbox, event: 'change', listener: checkboxListener });
         }
+
+        // Error display event listeners
+        this.addErrorEventListeners();
     }
 
     /**
-     * Handle form submission
+     * Add error-specific event listeners
+     */
+    addErrorEventListeners() {
+        // Error close button
+        const errorClose = this.container.querySelector(`.${Login.cssNamespace}__error-close`);
+        if (errorClose) {
+            const closeListener = () => this.hideError();
+            errorClose.addEventListener('click', closeListener);
+            this.eventListeners.push({ element: errorClose, event: 'click', listener: closeListener });
+        }
+
+        // Error retry button
+        const errorRetry = this.container.querySelector(`.${Login.cssNamespace}__error-retry`);
+        if (errorRetry) {
+            const retryListener = () => this.retryLogin();
+            errorRetry.addEventListener('click', retryListener);
+            this.eventListeners.push({ element: errorRetry, event: 'click', listener: retryListener });
+        }
+
+        // Error forgot password button
+        const errorForgot = this.container.querySelector(`.${Login.cssNamespace}__error-forgot`);
+        if (errorForgot) {
+            const forgotListener = () => this.handleForgotPassword();
+            errorForgot.addEventListener('click', forgotListener);
+            this.eventListeners.push({ element: errorForgot, event: 'click', listener: forgotListener });
+        }
+
+        // Modal error handlers
+        const modalClose = this.container.querySelector(`.${Login.cssNamespace}__error-modal-close`);
+        const modalBackdrop = this.container.querySelector(`.${Login.cssNamespace}__error-modal-backdrop`);
+        const modalRetry = this.container.querySelector(`.${Login.cssNamespace}__error-modal-retry`);
+        const modalForgot = this.container.querySelector(`.${Login.cssNamespace}__error-modal-forgot`);
+
+        if (modalClose) {
+            const modalCloseListener = () => this.hideErrorModal();
+            modalClose.addEventListener('click', modalCloseListener);
+            this.eventListeners.push({ element: modalClose, event: 'click', listener: modalCloseListener });
+        }
+
+        if (modalBackdrop) {
+            const backdropListener = () => this.hideErrorModal();
+            modalBackdrop.addEventListener('click', backdropListener);
+            this.eventListeners.push({ element: modalBackdrop, event: 'click', listener: backdropListener });
+        }
+
+        if (modalRetry) {
+            const modalRetryListener = () => this.retryLogin();
+            modalRetry.addEventListener('click', modalRetryListener);
+            this.eventListeners.push({ element: modalRetry, event: 'click', listener: modalRetryListener });
+        }
+
+        if (modalForgot) {
+            const modalForgotListener = () => this.handleForgotPassword();
+            modalForgot.addEventListener('click', modalForgotListener);
+            this.eventListeners.push({ element: modalForgot, event: 'click', listener: modalForgotListener });
+        }
+    }
+
+    /**
+     * Enhanced form submission with proper error handling
      */
     async handleSubmit(e) {
         e.preventDefault();
+
+        // Hide any existing errors
+        this.hideError();
+        this.hideErrorModal();
 
         // Collect form data
         const formData = new FormData(e.target);
@@ -554,32 +934,206 @@ class Login {
 
         try {
             this.setLoading(true);
-            this.hideGeneralError();
+            this.loginAttempts++;
 
             // Make API call using global API instance
-            const response = await API.post('/auth/login', this.formData);
+            const response = await API.post('/api/v2.0/auth/login', this.formData);
 
             this.setLoading(false);
 
-            // Success callback
-            if (this.options.events.onLoginSuccess) {
-                this.options.events.onLoginSuccess(response, this.formData);
+            // Check if login was successful
+            if (response && response.success) {
+                // Reset login attempts on success
+                this.loginAttempts = 0;
+                this.hideSecurityInfo();
+
+                // Success callback
+                if (this.options.events.onLoginSuccess) {
+                    this.options.events.onLoginSuccess(response.data, this.formData);
+                } else {
+                    console.log('Login successful:', response);
+                    // Default success behavior - could redirect or show success message
+                    this.showSuccessMessage('Login successful!');
+                }
             } else {
-                console.log('Login successful:', response);
-                alert('Login successful!');
+                // Handle API response that indicates failure
+                const errorMessage = this.extractErrorMessage(response);
+                this.handleLoginError(errorMessage, response);
             }
 
         } catch (error) {
             this.setLoading(false);
 
-            // Error callback
-            if (this.options.events.onLoginError) {
-                this.options.events.onLoginError(error, this.formData);
-            } else {
-                this.showGeneralError(error.message || 'Login failed. Please try again.');
-            }
+            // Extract meaningful error message
+            const errorMessage = this.extractErrorMessage(error);
+            this.handleLoginError(errorMessage, error);
         }
     }
+
+    /**
+     * Extract error message from response or error object
+     */
+    extractErrorMessage(errorOrResponse) {
+        // Handle null/undefined safely
+        if (!errorOrResponse) {
+            return 'Login failed. Please try again.';
+        }
+
+        // Common API error response patterns
+        if (errorOrResponse.response && errorOrResponse.response.data) {
+            const data = errorOrResponse.response.data;
+            if (data.message) return data.message;
+            if (data.error) return data.error;
+            if (data.errors && Array.isArray(data.errors) && data.errors.length > 0) {
+                return data.errors[0].message || data.errors[0];
+            }
+        }
+
+        // Direct response with error info
+        if (errorOrResponse.message) {
+            return errorOrResponse.message;
+        }
+
+        if (errorOrResponse.error) {
+            return errorOrResponse.error;
+        }
+
+        // Network or other errors
+        if (errorOrResponse.name === 'TypeError' && errorOrResponse.message && errorOrResponse.message.indexOf('fetch') !== -1) {
+            return 'Network error. Please check your connection and try again.';
+        }
+
+        // Handle string errors
+        if (typeof errorOrResponse === 'string') {
+            return errorOrResponse;
+        }
+
+        // Default fallback
+        return 'Login failed. Please check your credentials and try again.';
+    }
+
+    /**
+     * Handle login error with appropriate display
+     */
+    handleLoginError(errorMessage, originalError) {
+        // Show security info for multiple failed attempts
+        if (this.loginAttempts >= 3) {
+            this.showSecurityInfo();
+        }
+
+        // Choose display method
+        if (this.options.ui.errorDisplayType === 'modal') {
+            this.showErrorModal(errorMessage);
+        } else {
+            this.showError(errorMessage);
+        }
+
+        // Still call the error callback if provided
+        if (this.options.events.onLoginError) {
+            this.options.events.onLoginError(originalError, this.formData);
+        }
+
+        // Clear password field for security
+        const passwordInput = this.container.querySelector(`#${Login.cssNamespace}-password`);
+        if (passwordInput) {
+            passwordInput.value = '';
+            passwordInput.focus();
+        }
+    }
+
+    /**
+     * Show inline error message
+     */
+    showError(message) {
+        const errorContainer = this.container.querySelector(`#${Login.cssNamespace}-error-container`);
+        const errorText = this.container.querySelector(`.${Login.cssNamespace}__error-text`);
+
+        if (errorContainer && errorText) {
+            errorText.textContent = message;
+            errorContainer.style.display = 'block';
+        }
+    }
+
+    /**
+     * Hide inline error message
+     */
+    hideError() {
+        const errorContainer = this.container.querySelector(`#${Login.cssNamespace}-error-container`);
+        if (errorContainer) {
+            errorContainer.style.display = 'none';
+        }
+    }
+
+    /**
+     * Show error modal
+     */
+    showErrorModal(message) {
+        const modal = this.container.querySelector(`#${Login.cssNamespace}-error-modal`);
+        const modalText = this.container.querySelector(`.${Login.cssNamespace}__error-modal-text`);
+
+        if (modal && modalText) {
+            modalText.textContent = message;
+            modal.style.display = 'block';
+            document.body.style.overflow = 'hidden'; // Prevent scrolling
+        }
+    }
+
+    /**
+     * Hide error modal
+     */
+    hideErrorModal() {
+        const modal = this.container.querySelector(`#${Login.cssNamespace}-error-modal`);
+        if (modal) {
+            modal.style.display = 'none';
+            document.body.style.overflow = ''; // Restore scrolling
+        }
+    }
+
+    /**
+     * Show security info for multiple failed attempts
+     */
+    showSecurityInfo() {
+        const securityInfo = this.container.querySelector(`#${Login.cssNamespace}-security-info`);
+        if (securityInfo) {
+            securityInfo.style.display = 'block';
+        }
+    }
+
+    /**
+     * Hide security info
+     */
+    hideSecurityInfo() {
+        const securityInfo = this.container.querySelector(`#${Login.cssNamespace}-security-info`);
+        if (securityInfo) {
+            securityInfo.style.display = 'none';
+        }
+    }
+
+    /**
+     * Retry login (clear errors and focus on form)
+     */
+    retryLogin() {
+        this.hideError();
+        this.hideErrorModal();
+
+        // Focus on the first input field
+        const firstInput = this.container.querySelector(`#${Login.cssNamespace}-userIdOrEmail`);
+        if (firstInput) {
+            firstInput.focus();
+        }
+    }
+
+    /**
+     * Show success message (placeholder for success handling)
+     */
+    showSuccessMessage(message) {
+        // This could be enhanced with a success notification
+        console.log('Success:', message);
+        // For now, just use an alert, but this could be a nice toast notification
+        alert(message);
+    }
+
+    // ... rest of the existing methods (setLoading, validateForm, etc.) remain the same
 
     /**
      * Set loading state
@@ -601,27 +1155,6 @@ class Login {
     }
 
     /**
-     * Show general error message
-     */
-    showGeneralError(message) {
-        const errorElement = this.container.querySelector(`#${Login.cssNamespace}-general-error`);
-        if (errorElement) {
-            errorElement.querySelector('.error-text').textContent = message;
-            errorElement.style.display = 'flex';
-        }
-    }
-
-    /**
-     * Hide general error message
-     */
-    hideGeneralError() {
-        const errorElement = this.container.querySelector(`#${Login.cssNamespace}-general-error`);
-        if (errorElement) {
-            errorElement.style.display = 'none';
-        }
-    }
-
-    /**
      * Validate form
      */
     validateForm() {
@@ -639,7 +1172,7 @@ class Login {
 
         if (!userIdOrEmailInput) return true;
 
-        const userIdOrEmail = userIdOrEmailInput.value.trim();
+        const userIdOrEmail = userIdOrEmailInput.value ? userIdOrEmailInput.value.trim() : '';
 
         if (!userIdOrEmail) {
             this.showFieldError('userIdOrEmail', 'User ID or Email is required');
@@ -647,7 +1180,7 @@ class Login {
         }
 
         // Check if it contains @ symbol (indicating it's an email)
-        if (userIdOrEmail.includes('@')) {
+        if (userIdOrEmail.indexOf('@') !== -1) {
             // Validate as email
             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
             if (!emailRegex.test(userIdOrEmail)) {
@@ -750,6 +1283,10 @@ class Login {
      * Handle forgot password
      */
     handleForgotPassword() {
+        // Hide any error displays first
+        this.hideError();
+        this.hideErrorModal();
+
         if (this.options.events.onForgotPassword) {
             this.options.events.onForgotPassword();
         } else {
@@ -784,7 +1321,7 @@ class Login {
      */
     handleError(error) {
         console.error('[Login] Error:', error);
-        this.showGeneralError('Failed to initialize login form');
+        this.showError('Failed to initialize login form');
     }
 
     /**
@@ -798,6 +1335,9 @@ class Login {
             }
         });
         this.eventListeners = [];
+
+        // Restore body overflow if modal was open
+        document.body.style.overflow = '';
 
         // Clear container
         this.container.innerHTML = '';
@@ -815,5 +1355,5 @@ if (typeof module !== 'undefined' && module.exports) {
 
 if (typeof window !== 'undefined') {
     window.Login = Login;
-    console.log('✅ Login component loaded');
+    console.log('✅ Enhanced Login component loaded');
 }
