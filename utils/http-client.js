@@ -1,13 +1,13 @@
 /**
- * TrilloHTTPClient - API Client Library for TrilloAI Framework
+ * HTTPClient - API Client Library for AI Framework
  * Provides HTTP utilities with built-in error handling, retries, caching, and mock support
  *
  * Usage:
  * - Include in HTML: <script src="http.js"></script>
- * - Use: TrilloHTTPClient.get('/api/users'), TrilloHTTPClient.post('/api/users', data)
+ * - Use: HTTPClient.get('/api/users'), HTTPClient.post('/api/users', data)
  */
 
-class TrilloHTTPClient {
+class HTTPClient {
     constructor() {
         this.baseURL = '';
         this.defaultHeaders = {
@@ -34,7 +34,7 @@ class TrilloHTTPClient {
         // Debug mode
         this.debug = false;
 
-        this.log('TrilloHTTPClient initialized');
+        this.log('HTTPClient initialized');
     }
 
     // === CONFIGURATION METHODS ===
@@ -617,7 +617,7 @@ class TrilloHTTPClient {
      */
     log(...args) {
         if (this.debug) {
-            console.log('[TrilloHTTPClient]', ...args);
+            console.log('[HTTPClient]', ...args);
         }
     }
 
@@ -728,7 +728,7 @@ class TrilloHTTPClient {
 function setupHttpClients() {
     try {
         // Metadata Server Client
-        window.MetadataClient = new TrilloHTTPClient();
+        window.MetadataClient = new HTTPClient();
         window.MetadataClient.configure({
             baseURL: 'http://localhost:8080',
             debug: this.debug,
@@ -736,7 +736,7 @@ function setupHttpClients() {
         });
 
         // Application Data Client (use main instance)
-        window.ApiClient = new TrilloHTTPClient();
+        window.ApiClient = new HTTPClient();
         window.ApiClient.configure({
             baseURL: 'https://localhost:9020',
             debug: this.debug,
@@ -754,32 +754,32 @@ function setupHttpClients() {
 /*
 
 // Basic configuration
-TrilloHTTPClient.configure({
+HTTPClient.configure({
     baseURL: 'https://api.example.com',
     debug: true,
     timeout: 10000
 });
 
 // Set auth token
-TrilloHTTPClient.setAuthToken('your-jwt-token');
+HTTPClient.setAuthToken('your-jwt-token');
 
 // Basic requests
-const users = await TrilloHTTPClient.get('/users');
-const newUser = await TrilloHTTPClient.post('/users', { name: 'John', email: 'john@example.com' });
+const users = await HTTPClient.get('/users');
+const newUser = await HTTPClient.post('/users', { name: 'John', email: 'john@example.com' });
 
 // With parameters
-const filteredUsers = await TrilloHTTPClient.get('/users', {
+const filteredUsers = await HTTPClient.get('/users', {
     params: { role: 'admin', active: true }
 });
 
 // Mock mode for testing
-TrilloHTTPClient.setMockMode(true);
-TrilloHTTPClient.addMockData('/users', [
+HTTPClient.setMockMode(true);
+HTTPClient.addMockData('/users', [
     { id: 1, name: 'John Doe', email: 'john@example.com' }
 ]);
 
 // Batch requests
-const results = await TrilloHTTPClient.batch([
+const results = await HTTPClient.batch([
     '/users',
     '/orders',
     { url: '/stats', options: { cache: false } }
@@ -787,18 +787,18 @@ const results = await TrilloHTTPClient.batch([
 
 // File upload
 const fileInput = document.getElementById('file');
-const response = await TrilloHTTPClient.upload('/upload', fileInput.files[0]);
+const response = await HTTPClient.upload('/upload', fileInput.files[0]);
 
 // File download
-await TrilloHTTPClient.download('/export/users.csv', 'users.csv');
+await HTTPClient.download('/export/users.csv', 'users.csv');
 
 // Add interceptors
-TrilloHTTPClient.addRequestInterceptor(async (config) => {
+HTTPClient.addRequestInterceptor(async (config) => {
     config.headers['X-Request-ID'] = generateRequestId();
     return config;
 });
 
-TrilloHTTPClient.addErrorInterceptor(async (error) => {
+HTTPClient.addErrorInterceptor(async (error) => {
     if (error.status === 401) {
         // Handle authentication error
         window.location.href = '/login';

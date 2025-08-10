@@ -1,0 +1,544 @@
+{
+  "componentName": "customer-edit-form",
+  "cssNamespace": "tai",
+  "jsNamespace": "TrilloAI",
+  "form": {
+    "id": "editCustomerForm",
+    "title": "Edit Customer Details",
+    "subtitle": "Update customer information",
+    "method": "POST",
+    "enctype": "application/x-www-form-urlencoded",
+    "autocomplete": "on",
+    "novalidate": false,
+    "layout": {
+      "type": "vertical",
+      "spacing": "md",
+      "maxWidth": "600px",
+      "padding": "24px",
+      "responsive": true
+    },
+    "fieldGroups": [
+      {
+        "id": "customerName",
+        "label": "Customer Name",
+        "type": "fieldset",
+        "layout": "grid",
+        "columns": {
+          "default": 1,
+          "md": 3,
+          "lg": 3
+        },
+        "gap": "16px",
+        "fields": [
+          {
+            "id": "firstName",
+            "name": "customerName.first",
+            "label": "First Name",
+            "type": "text",
+            "required": true,
+            "placeholder": "Enter first name",
+            "maxLength": 50,
+            "minLength": 1,
+            "pattern": "^[a-zA-ZÀ-ÿ\\s'-]+$",
+            "autocomplete": "given-name",
+            "validation": {
+              "required": {
+                "message": "First name is required"
+              },
+              "pattern": {
+                "message": "Please enter a valid first name"
+              },
+              "minLength": {
+                "message": "First name must be at least 1 character"
+              },
+              "maxLength": {
+                "message": "First name cannot exceed 50 characters"
+              }
+            },
+            "accessibility": {
+              "ariaLabel": "Customer first name",
+              "ariaRequired": true,
+              "ariaDescribedBy": "firstName-error"
+            },
+            "styling": {
+              "width": "100%",
+              "size": "md"
+            }
+          },
+          {
+            "id": "middleName",
+            "name": "customerName.middle",
+            "label": "Middle Name",
+            "type": "text",
+            "required": false,
+            "placeholder": "Enter middle name (optional)",
+            "maxLength": 50,
+            "pattern": "^[a-zA-ZÀ-ÿ\\s'-]*$",
+            "autocomplete": "additional-name",
+            "validation": {
+              "pattern": {
+                "message": "Please enter a valid middle name"
+              },
+              "maxLength": {
+                "message": "Middle name cannot exceed 50 characters"
+              }
+            },
+            "accessibility": {
+              "ariaLabel": "Customer middle name (optional)",
+              "ariaRequired": false,
+              "ariaDescribedBy": "middleName-error"
+            },
+            "styling": {
+              "width": "100%",
+              "size": "md"
+            }
+          },
+          {
+            "id": "lastName",
+            "name": "customerName.last",
+            "label": "Last Name",
+            "type": "text",
+            "required": true,
+            "placeholder": "Enter last name",
+            "maxLength": 50,
+            "minLength": 1,
+            "pattern": "^[a-zA-ZÀ-ÿ\\s'-]+$",
+            "autocomplete": "family-name",
+            "validation": {
+              "required": {
+                "message": "Last name is required"
+              },
+              "pattern": {
+                "message": "Please enter a valid last name"
+              },
+              "minLength": {
+                "message": "Last name must be at least 1 character"
+              },
+              "maxLength": {
+                "message": "Last name cannot exceed 50 characters"
+              }
+            },
+            "accessibility": {
+              "ariaLabel": "Customer last name",
+              "ariaRequired": true,
+              "ariaDescribedBy": "lastName-error"
+            },
+            "styling": {
+              "width": "100%",
+              "size": "md"
+            }
+          }
+        ]
+      },
+      {
+        "id": "contactInfo",
+        "label": "Contact Information",
+        "type": "fieldset",
+        "layout": "vertical",
+        "gap": "16px",
+        "fields": [
+          {
+            "id": "phone",
+            "name": "phone",
+            "label": "Phone Number",
+            "type": "tel",
+            "required": true,
+            "placeholder": "(555) 123-4567",
+            "maxLength": 20,
+            "pattern": "^[\\+]?[1-9]?[0-9]{7,15}$",
+            "autocomplete": "tel",
+            "inputMode": "tel",
+            "validation": {
+              "required": {
+                "message": "Phone number is required"
+              },
+              "pattern": {
+                "message": "Please enter a valid phone number"
+              }
+            },
+            "accessibility": {
+              "ariaLabel": "Customer phone number",
+              "ariaRequired": true,
+              "ariaDescribedBy": "phone-error phone-help"
+            },
+            "helpText": {
+              "id": "phone-help",
+              "text": "Include country code if international"
+            },
+            "formatting": {
+              "mask": "(999) 999-9999",
+              "stripMask": true
+            },
+            "styling": {
+              "width": "100%",
+              "size": "md"
+            }
+          },
+          {
+            "id": "email",
+            "name": "email",
+            "label": "Email Address",
+            "type": "email",
+            "required": true,
+            "placeholder": "john.doe@example.com",
+            "maxLength": 255,
+            "autocomplete": "email",
+            "inputMode": "email",
+            "validation": {
+              "required": {
+                "message": "Email address is required"
+              },
+              "email": {
+                "message": "Please enter a valid email address"
+              },
+              "maxLength": {
+                "message": "Email address cannot exceed 255 characters"
+              }
+            },
+            "accessibility": {
+              "ariaLabel": "Customer email address",
+              "ariaRequired": true,
+              "ariaDescribedBy": "email-error"
+            },
+            "styling": {
+              "width": "100%",
+              "size": "md"
+            }
+          }
+        ]
+      },
+      {
+        "id": "addressInfo",
+        "label": "Address Information",
+        "type": "fieldset",
+        "layout": "vertical",
+        "gap": "16px",
+        "fields": [
+          {
+            "id": "streetAddress",
+            "name": "address.street",
+            "label": "Street Address",
+            "type": "text",
+            "required": true,
+            "placeholder": "123 Main Street",
+            "maxLength": 100,
+            "autocomplete": "street-address",
+            "validation": {
+              "required": {
+                "message": "Street address is required"
+              },
+              "maxLength": {
+                "message": "Street address cannot exceed 100 characters"
+              }
+            },
+            "accessibility": {
+              "ariaLabel": "Street address",
+              "ariaRequired": true,
+              "ariaDescribedBy": "streetAddress-error"
+            },
+            "styling": {
+              "width": "100%",
+              "size": "md"
+            }
+          },
+          {
+            "id": "addressLine2",
+            "name": "address.line2",
+            "label": "Address Line 2",
+            "type": "text",
+            "required": false,
+            "placeholder": "Apartment, suite, unit, etc. (optional)",
+            "maxLength": 50,
+            "autocomplete": "address-line2",
+            "validation": {
+              "maxLength": {
+                "message": "Address line 2 cannot exceed 50 characters"
+              }
+            },
+            "accessibility": {
+              "ariaLabel": "Address line 2 (optional)",
+              "ariaRequired": false,
+              "ariaDescribedBy": "addressLine2-error"
+            },
+            "styling": {
+              "width": "100%",
+              "size": "md"
+            }
+          },
+          {
+            "id": "cityStateZip",
+            "type": "group",
+            "layout": "grid",
+            "columns": {
+              "default": 1,
+              "md": 3
+            },
+            "gap": "16px",
+            "fields": [
+              {
+                "id": "city",
+                "name": "address.city",
+                "label": "City",
+                "type": "text",
+                "required": true,
+                "placeholder": "New York",
+                "maxLength": 50,
+                "autocomplete": "address-level2",
+                "validation": {
+                  "required": {
+                    "message": "City is required"
+                  },
+                  "maxLength": {
+                    "message": "City name cannot exceed 50 characters"
+                  }
+                },
+                "accessibility": {
+                  "ariaLabel": "City",
+                  "ariaRequired": true,
+                  "ariaDescribedBy": "city-error"
+                },
+                "styling": {
+                  "width": "100%",
+                  "size": "md"
+                }
+              },
+              {
+                "id": "state",
+                "name": "address.state",
+                "label": "State/Province",
+                "type": "text",
+                "required": true,
+                "placeholder": "NY",
+                "maxLength": 50,
+                "autocomplete": "address-level1",
+                "validation": {
+                  "required": {
+                    "message": "State/Province is required"
+                  },
+                  "maxLength": {
+                    "message": "State/Province cannot exceed 50 characters"
+                  }
+                },
+                "accessibility": {
+                  "ariaLabel": "State or Province",
+                  "ariaRequired": true,
+                  "ariaDescribedBy": "state-error"
+                },
+                "styling": {
+                  "width": "100%",
+                  "size": "md"
+                }
+              },
+              {
+                "id": "zipCode",
+                "name": "address.zipCode",
+                "label": "ZIP/Postal Code",
+                "type": "text",
+                "required": true,
+                "placeholder": "10001",
+                "maxLength": 10,
+                "pattern": "^[0-9]{5}(-[0-9]{4})?$|^[A-Za-z][0-9][A-Za-z] [0-9][A-Za-z][0-9]$",
+                "autocomplete": "postal-code",
+                "validation": {
+                  "required": {
+                    "message": "ZIP/Postal code is required"
+                  },
+                  "pattern": {
+                    "message": "Please enter a valid ZIP or postal code"
+                  }
+                },
+                "accessibility": {
+                  "ariaLabel": "ZIP or postal code",
+                  "ariaRequired": true,
+                  "ariaDescribedBy": "zipCode-error"
+                },
+                "styling": {
+                  "width": "100%",
+                  "size": "md"
+                }
+              }
+            ]
+          },
+          {
+            "id": "country",
+            "name": "address.country",
+            "label": "Country",
+            "type": "select",
+            "required": true,
+            "defaultValue": "US",
+            "autocomplete": "country",
+            "options": [
+              { "value": "US", "label": "United States" },
+              { "value": "CA", "label": "Canada" },
+              { "value": "MX", "label": "Mexico" },
+              { "value": "GB", "label": "United Kingdom" },
+              { "value": "DE", "label": "Germany" },
+              { "value": "FR", "label": "France" },
+              { "value": "other", "label": "Other" }
+            ],
+            "validation": {
+              "required": {
+                "message": "Country is required"
+              }
+            },
+            "accessibility": {
+              "ariaLabel": "Country",
+              "ariaRequired": true,
+              "ariaDescribedBy": "country-error"
+            },
+            "styling": {
+              "width": "100%",
+              "size": "md"
+            }
+          }
+        ]
+      }
+    ],
+    "actions": {
+      "layout": "horizontal",
+      "alignment": "right",
+      "spacing": "12px",
+      "buttons": [
+        {
+          "id": "cancelBtn",
+          "type": "button",
+          "variant": "secondary",
+          "label": "Cancel",
+          "action": "cancel",
+          "size": "md",
+          "icon": {
+            "name": "fa-times",
+            "position": "left"
+          },
+          "accessibility": {
+            "ariaLabel": "Cancel editing customer details"
+          },
+          "styling": {
+            "minWidth": "100px"
+          },
+          "behavior": {
+            "confirmCancel": true,
+            "confirmMessage": "Are you sure you want to cancel? Any unsaved changes will be lost."
+          }
+        },
+        {
+          "id": "saveBtn",
+          "type": "submit",
+          "variant": "primary",
+          "label": "Save Changes",
+          "action": "save",
+          "size": "md",
+          "icon": {
+            "name": "fa-save",
+            "position": "left"
+          },
+          "accessibility": {
+            "ariaLabel": "Save customer details"
+          },
+          "styling": {
+            "minWidth": "120px"
+          },
+          "loadingState": {
+            "enabled": true,
+            "text": "Saving...",
+            "icon": "fa-spinner fa-spin"
+          }
+        }
+      ]
+    }
+  },
+  "behavior": {
+    "validation": {
+      "mode": "onSubmit",
+      "showErrorsOnBlur": true,
+      "scrollToFirstError": true,
+      "highlightInvalidFields": true
+    },
+    "autoSave": {
+      "enabled": false,
+      "interval": 30000,
+      "storageKey": "editCustomerForm_autosave"
+    },
+    "dirtyTracking": {
+      "enabled": true,
+      "warnOnNavigate": true,
+      "warnMessage": "You have unsaved changes. Are you sure you want to leave?"
+    },
+    "accessibility": {
+      "announceErrors": true,
+      "focusFirstError": true,
+      "keyboardNavigation": true
+    }
+  },
+  "styling": {
+    "theme": "light",
+    "colorScheme": {
+      "primary": "#1976d2",
+      "secondary": "#757575",
+      "success": "#4caf50",
+      "warning": "#ff9800",
+      "error": "#f44336",
+      "background": "#ffffff",
+      "surface": "#f5f5f5",
+      "text": "#212121",
+      "textSecondary": "#757575"
+    },
+    "typography": {
+      "fontFamily": "'Roboto', sans-serif",
+      "fontSize": {
+        "title": "1.5rem",
+        "subtitle": "1rem",
+        "label": "0.875rem",
+        "input": "1rem",
+        "help": "0.75rem",
+        "error": "0.75rem"
+      },
+      "fontWeight": {
+        "title": 500,
+        "label": 500,
+        "input": 400
+      }
+    },
+    "spacing": {
+      "xs": "4px",
+      "sm": "8px",
+      "md": "16px",
+      "lg": "24px",
+      "xl": "32px"
+    },
+    "borderRadius": "4px",
+    "boxShadow": "0 2px 4px rgba(0,0,0,0.1)",
+    "animations": {
+      "enabled": true,
+      "duration": "0.2s",
+      "easing": "ease-in-out"
+    }
+  },
+  "responsive": {
+    "breakpoints": {
+      "sm": "576px",
+      "md": "768px",
+      "lg": "992px",
+      "xl": "1200px"
+    },
+    "behavior": {
+      "stackFieldsOnMobile": true,
+      "adjustButtonLayoutOnMobile": true,
+      "collapsibleFieldsets": false
+    }
+  },
+  "integration": {
+    "apiEndpoint": "/api/customers/{customerId}",
+    "method": "PUT",
+    "headers": {
+      "Content-Type": "application/json",
+      "X-Requested-With": "XMLHttpRequest"
+    },
+    "successRedirect": "/customers",
+    "errorHandling": {
+      "showGlobalErrors": true,
+      "showFieldErrors": true,
+      "retryEnabled": true
+    }
+  }
+}

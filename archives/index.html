@@ -176,7 +176,6 @@
 
     <!-- HTTP Library (ensure this loads before TemplateFactory) -->
     <script src="utils/http.js"></script>
-    <script src="generators/form.js"></script>
     <script src="components/sidebar.js"></script>
     <script src="components/header.js"></script>
 
@@ -225,10 +224,10 @@
                       header.render(componentName2, css2, html2, container2);
                     }
 
-                    const metadata3 = await MetadataClient.json("/metadata/form.json");
+                    /* const metadata3 = await MetadataClient.json("/metadata/form.json");
                     const container3 = document.getElementById('tai-main-container');
                     const formGenerator = new FormGenerator();
-                    formGenerator.render(metadata3, container3);
+                    formGenerator.render(metadata3, container3); */
 
 
                     // Update debug info
