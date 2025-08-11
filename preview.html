@@ -43,6 +43,7 @@
     <script src="components/base-component.js"></script>
     <script src="components/login.js"></script>
     <script src="components/signup.js"></script>
+    <script src="components/left-right-container.js"></script>
 
     <script>
       var environment = 'development';
@@ -75,8 +76,22 @@
         }
 
         const options = componentClass.getPreviewOptions();
+        options.preview = true;
+        let children;
+        if (componentName === "LeftRightContainer") {
+            children = [
+                {
+                    container: "left",
+                    componentClass : "Signup"
+                },
+                {
+                    container: "right",
+                    componentClass : "Login"
+                }
+            ]
+        }
 
-        appConfig.componentManager.mountComponent(componentClass, 'preview-container', options);
+        appConfig.componentManager.mountComponent(componentClass, 'preview-container', options, children);
       });
     </script>
 </body>

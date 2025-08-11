@@ -24,8 +24,6 @@ class BaseComponent {
 
         // Event listeners storage for cleanup
         this.eventListeners = [];
-
-        this.init();
     }
 
     /**
@@ -34,7 +32,7 @@ class BaseComponent {
     mergeDefaultOptions(options) {
         return {
             cssFile: options.cssFile || this.constructor.cssFile || '',
-
+            preview : false,
             dataSource: {
                 type: 'static',        // 'static', 'api', 'function', 'websocket'
                 data: null,

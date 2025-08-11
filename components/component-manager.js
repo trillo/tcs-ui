@@ -23,10 +23,10 @@ class ComponentManager {
     }
 
     /**
-     * Mount a component by class
+     * Mount a component by class (UPDATED)
      */
-    mountComponent(ComponentClass, containerId, options = {}) {
-        const container = document.getElementById(containerId);
+    async mountComponent(ComponentClass, containerId, options = {}, children = null) {
+        const container = this.findContainer(containerId);
         if (!container) {
             throw new Error(`Container with ID '${containerId}' not found`);
         }
@@ -34,21 +34,123 @@ class ComponentManager {
         try {
             const component = new ComponentClass(container, options);
 
+            // Initialize the component and wait for completion
+            await component.init();
+
             this.mountedComponents.set(containerId, {
                 component,
                 ComponentClass,
                 options,
                 containerId,
-                mountedAt: new Date().toISOString()
+                mountedAt: new Date().toISOString(),
+                children: children || []
             });
 
             console.log(`[ComponentManager] Mounted ${ComponentClass.name} in #${containerId}`);
+
+            // Now mount children after parent is fully initialized
+            if (children && Array.isArray(children)) {
+                await this.mountChildren(containerId, children);
+            }
+
             return component;
 
         } catch (error) {
             console.error(`[ComponentManager] Failed to mount ${ComponentClass.name}:`, error);
             throw error;
         }
+    }
+
+    /**
+     * Find container by data-container-id attribute first, then by ID (NEW UTILITY METHOD)
+     */
+    findContainer(containerId) {
+        // First try to find by data-container-id attribute
+        let container = document.querySelector(`[data-container-id="${containerId}"]`);
+
+        // If not found, fall back to getElementById
+        if (!container) {
+            container = document.getElementById(containerId);
+        }
+
+        return container;
+    }
+
+    /**
+     * Find child container within parent by data-container-id first, then by ID (NEW UTILITY METHOD)
+     */
+    findChildContainer(parentContainer, containerId) {
+        // First try to find by data-container-id attribute within parent
+        let container = parentContainer.querySelector(`[data-container-id="${containerId}"]`);
+
+        // If not found, fall back to ID search within parent
+        if (!container) {
+            container = parentContainer.querySelector(`#${containerId}`);
+        }
+
+        return container;
+    }
+
+    /**
+     * Mount children components (NEW METHOD)
+     */
+    mountChildren(parentContainerId, children) {
+        const parentMounted = this.mountedComponents.get(parentContainerId);
+        if (!parentMounted) {
+            throw new Error(`Parent component not found in container #${parentContainerId}`);
+        }
+
+        let mountedChildrenCount = 0;
+
+        children.forEach((child, index) => {
+            try {
+                const { container, componentClass, options = {} } = child;
+
+                // Support both string class names and actual classes
+                let ChildComponentClass;
+                if (typeof componentClass === 'string') {
+                    ChildComponentClass = window[componentClass];
+                    if (!ChildComponentClass) {
+                        throw new Error(`Child component class "${componentClass}" not found in window`);
+                    }
+                } else {
+                    ChildComponentClass = componentClass;
+                }
+
+                // Create child container ID (within parent)
+                const childContainerId = `${parentContainerId}-${container}`;
+
+                // Find the child container within the parent
+                const parentContainer = this.findContainer(parentContainerId);
+                const childContainer = this.findChildContainer(parentContainer, container);
+
+                if (!childContainer) {
+                    throw new Error(`Child container "${container}" not found within parent #${parentContainerId}`);
+                }
+
+                // Ensure child container has an ID for mounting
+                if (!childContainer.id) {
+                    childContainer.id = childContainerId;
+                }
+
+                // Mount the child component
+                const childOptions = options.preview ? ChildComponentClass.getPreviewOptions() : ChildComponentClass.getDefaultOptions();
+                childOptions.preview = options.preview;
+                this.mountComponent(ChildComponentClass, childContainer.id, childOptions);
+                mountedChildrenCount++;
+
+                console.log(`[ComponentManager] Mounted child ${ChildComponentClass.name} in container "${container}"`);
+
+            } catch (error) {
+                console.error(`[ComponentManager] Failed to mount child ${index}:`, error);
+            }
+        });
+
+        // Update parent's children record
+        parentMounted.children = children;
+
+        console.log(`[ComponentManager] Mounted ${mountedChildrenCount}/${children.length} children for #${parentContainerId}`);
+        return mountedChildrenCount;
     }
 
     /**
