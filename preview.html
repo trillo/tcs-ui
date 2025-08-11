@@ -69,12 +69,6 @@
             return;
         }
 
-        // Check if component has preview options
-        if (typeof componentClass.getPreviewOptions !== 'function') {
-            document.body.innerHTML = `<h1>Component "${componentName}" doesn't support preview mode</h1>`;
-            return;
-        }
-
         const options = componentClass.getPreviewOptions();
         options.preview = true;
         let children;

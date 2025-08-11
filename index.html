@@ -29,7 +29,7 @@
 </head>
 <body>
     <!-- Login Component Container -->
-    <div id="login-container"></div>
+    <div id="main-container"></div>
 
     <!-- Scripts -->
     <script src="utils/utils.js"></script>
@@ -43,6 +43,7 @@
     <script src="components/base-component.js"></script>
     <script src="components/login.js"></script>
     <script src="components/signup.js"></script>
+    <script src="components/left-right-container.js"></script>
 
     <script>
       var environment = 'development';
@@ -52,17 +53,33 @@
         const appConfig = new AppConfig();
         await appConfig.init(environment, mockMode);
 
-        // 2. Register components
+        // 2. Mount component
 
-        const options = Login.getDefaultOptions();
+        const componentName = "LeftRightContainer";
 
-        appConfig.componentManager.registerComponent('login', Login, options);
+        const componentClass = window[componentName];
 
-        // 3. Mount components
-        appConfig.componentManager.mountRegisteredComponent('login', 'login-container');
+        if (!componentClass) {
+            document.body.innerHTML = `<h1>Component "${componentName}" not found</h1>`;
+            return;
+        }
 
-        // Or mount directly
-        // appConfig.componentManager.mountComponent(Login, 'login-container', options);
+        const options = componentClass.getDefaultOptions();
+        let children;
+        if (componentName === "LeftRightContainer") {
+            children = [
+                {
+                    container: "left",
+                    componentClass : "Signup"
+                },
+                {
+                    container: "right",
+                    componentClass : "Login"
+                }
+            ]
+        }
+
+        appConfig.componentManager.mountComponent(componentClass, 'main-container', options, children);
       });
     </script>
 </body>
