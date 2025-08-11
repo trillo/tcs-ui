@@ -1072,6 +1072,25 @@ class Login extends BaseComponent {
     }
 
     /**
+     * Get default options for normal mode
+     */
+    static getDefaultOptions() {
+        return {
+            events: {
+                onLoginSuccess: (userData) => {
+                    window.location.href = '/dashboard';
+                },
+                onForgotPassword: () => {
+                    // Custom forgot password handling
+                }
+            },
+            ui: {
+                errorDisplayType: 'inline' // Use modal instead of inline errors
+            }
+        };
+    }
+
+    /**
      * Get default options for preview mode
      */
     static getPreviewOptions() {

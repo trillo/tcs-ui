@@ -1008,6 +1008,13 @@ class BaseComponent {
     }
 
     /**
+     * Get default options for component - MUST be implemented by subclasses
+     */
+    static getDefaultOptions() {
+        throw new Error(`${this.name} must implement static getDefaultOptions() method for normal mode`);
+    }
+
+    /**
      * Get preview options for component - MUST be implemented by subclasses
      */
     static getPreviewOptions() {
