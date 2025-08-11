@@ -1006,22 +1006,7 @@ class BaseComponent {
             console.log(`[${this.constructor.name}]`, ...args);
         }
     }
-
-    // Add static utility method
-    static deepMerge(target, source) {
-        const result = { ...target };
-
-        for (const key in source) {
-            if (source[key] && typeof source[key] === 'object' && !Array.isArray(source[key])) {
-                result[key] = this.deepMerge(result[key] || {}, source[key]);
-            } else {
-                result[key] = source[key];
-            }
-        }
-
-        return result;
-    }
-
+    
     /**
      * Get default options for component - MUST be implemented by subclasses
      */

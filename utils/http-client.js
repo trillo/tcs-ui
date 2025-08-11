@@ -1,15 +1,12 @@
 /**
- * HTTPClient - API Client Library for AI Framework
+ * HTTPClient - Enhanced API Client Library with Versioning Support
  * Provides HTTP utilities with built-in error handling, retries, caching, and mock support
- *
- * Usage:
- * - Include in HTML: <script src="http.js"></script>
- * - Use: HTTPClient.get('/api/users'), HTTPClient.post('/api/users', data)
  */
 
 class HTTPClient {
     constructor() {
         this.baseURL = '';
+        this.apiVersion = ''; // New: API version support
         this.defaultHeaders = {
             'Content-Type': 'application/json'
         };
@@ -44,6 +41,7 @@ class HTTPClient {
      */
     configure(config) {
         if (config.baseURL) this.baseURL = config.baseURL.replace(/\/$/, '');
+        if (config.apiVersion) this.apiVersion = config.apiVersion.replace(/^\/|\/$/g, ''); // Clean leading/trailing slashes
         if (config.headers) this.defaultHeaders = { ...this.defaultHeaders, ...config.headers };
         if (config.timeout) this.timeout = config.timeout;
         if (config.retryAttempts !== undefined) this.retryAttempts = config.retryAttempts;
@@ -149,79 +147,116 @@ class HTTPClient {
 
     /**
      * GET request
+     * @param {string} urlOrPath - Full URL or path (if relative, will be combined with baseURL and apiVersion)
+     * @param {object} options - Request options
      */
-    async get(url, options = {}) {
-        return this.request(url, { ...options, method: 'GET' });
+    async get(urlOrPath, options = {}) {
+        return this.request(urlOrPath, { ...options, method: 'GET' });
     }
 
     /**
      * POST request
+     * @param {string} urlOrPath - Full URL or path (if relative, will be combined with baseURL and apiVersion)
+     * @param {*} data - Request body data
+     * @param {object} options - Request options
      */
-    async post(url, data, options = {}) {
-        return this.request(url, { ...options, method: 'POST', data });
+    async post(urlOrPath, data, options = {}) {
+        return this.request(urlOrPath, { ...options, method: 'POST', data });
     }
 
     /**
      * PUT request
+     * @param {string} urlOrPath - Full URL or path (if relative, will be combined with baseURL and apiVersion)
+     * @param {*} data - Request body data
+     * @param {object} options - Request options
      */
-    async put(url, data, options = {}) {
-        return this.request(url, { ...options, method: 'PUT', data });
+    async put(urlOrPath, data, options = {}) {
+        return this.request(urlOrPath, { ...options, method: 'PUT', data });
     }
 
     /**
      * PATCH request
+     * @param {string} urlOrPath - Full URL or path (if relative, will be combined with baseURL and apiVersion)
+     * @param {*} data - Request body data
+     * @param {object} options - Request options
      */
-    async patch(url, data, options = {}) {
-        return this.request(url, { ...options, method: 'PATCH', data });
+    async patch(urlOrPath, data, options = {}) {
+        return this.request(urlOrPath, { ...options, method: 'PATCH', data });
     }
-
-    async json(url, options = {}) {
-      const response = await this.get(url, options);
-
-      // If data is a string (raw JSON), try to parse it
-      if (typeof response.data === 'string') {
-          try {
-              return JSON.parse(response.data);
-          } catch (error) {
-              this.log('Failed to parse JSON string:', error.message);
-              throw new Error('Invalid JSON response');
-          }
-      }
-
-      // If data is null or undefined, there might have been a parsing error
-      if (response.data === null || response.data === undefined) {
-          throw new Error('No data received or failed to parse response');
-      }
-
-      return response.data;
-    };
-
-    async postJson(url, data, options = {}) {
-        const response = await this.post(url, data, options);
-        return response.data;
-    };
-
-    async putJson(url, data, options = {}) {
-        const response = await this.put(url, data, options);
-        return response.data;
-    };
 
     /**
      * DELETE request
+     * @param {string} urlOrPath - Full URL or path (if relative, will be combined with baseURL and apiVersion)
+     * @param {object} options - Request options
      */
-    async delete(url, options = {}) {
-        return this.request(url, { ...options, method: 'DELETE' });
+    async delete(urlOrPath, options = {}) {
+        return this.request(urlOrPath, { ...options, method: 'DELETE' });
     }
 
+    /**
+     * Get JSON data directly
+     * @param {string} urlOrPath - Full URL or path
+     * @param {object} options - Request options
+     */
+    async json(urlOrPath, options = {}) {
+        const response = await this.get(urlOrPath, options);
+
+        // If data is a string (raw JSON), try to parse it
+        if (typeof response.data === 'string') {
+            try {
+                return JSON.parse(response.data);
+            } catch (error) {
+                this.log('Failed to parse JSON string:', error.message);
+                throw new Error('Invalid JSON response');
+            }
+        }
+
+        // If data is null or undefined, there might have been a parsing error
+        if (response.data === null || response.data === undefined) {
+            throw new Error('No data received or failed to parse response');
+        }
+
+        return response.data;
+    }
+
+    /**
+     * POST JSON data and return JSON response
+     * @param {string} urlOrPath - Full URL or path
+     * @param {*} data - Request body data
+     * @param {object} options - Request options
+     */
+    async postJson(urlOrPath, data, options = {}) {
+        const response = await this.post(urlOrPath, data, options);
+        return response.data;
+    }
+
+    /**
+     * PUT JSON data and return JSON response
+     * @param {string} urlOrPath - Full URL or path
+     * @param {*} data - Request body data
+     * @param {object} options - Request options
+     */
+    async putJson(urlOrPath, data, options = {}) {
+        const response = await this.put(urlOrPath, data, options);
+        return response.data;
+    }
+
+    /**
+     * Load template by component name
+     * @param {string} componentName - Name of the component
+     */
     async loadTemplate(componentName) {
-      const response = await this.json(`/api/v2.0/templates/` + componentName);
-      return response;
+        const response = await this.json(`/templates/${componentName}`);
+        return response;
     }
 
     /**
      * Upload file
+     * @param {string} urlOrPath - Full URL or path
+     * @param {File} file - File to upload
+     * @param {object} options - Request options
      */
-    async upload(url, file, options = {}) {
+    async upload(urlOrPath, file, options = {}) {
         const formData = new FormData();
         formData.append('file', file);
 
@@ -231,7 +266,7 @@ class HTTPClient {
             });
         }
 
-        return this.request(url, {
+        return this.request(urlOrPath, {
             ...options,
             method: 'POST',
             data: formData,
@@ -245,10 +280,13 @@ class HTTPClient {
 
     /**
      * Download file
+     * @param {string} urlOrPath - Full URL or path
+     * @param {string} filename - Filename for download
+     * @param {object} options - Request options
      */
-    async download(url, filename, options = {}) {
+    async download(urlOrPath, filename, options = {}) {
         try {
-            const response = await this.request(url, {
+            const response = await this.request(urlOrPath, {
                 ...options,
                 responseType: 'blob'
             });
@@ -274,8 +312,10 @@ class HTTPClient {
 
     /**
      * Main request method
+     * @param {string} urlOrPath - Full URL or path
+     * @param {object} options - Request options
      */
-    async request(url, options = {}) {
+    async request(urlOrPath, options = {}) {
         const startTime = Date.now();
         let attempt = 0;
 
@@ -289,8 +329,8 @@ class HTTPClient {
             ...options
         };
 
-        // Build full URL
-        const fullUrl = this.buildUrl(url, config.params);
+        // Build full URL with API versioning
+        const fullUrl = this.buildUrl(urlOrPath, config.params);
 
         // Check cache for GET requests
         if (config.method === 'GET' && config.cache) {
@@ -360,6 +400,57 @@ class HTTPClient {
                 await this.sleep(delay);
             }
         }
+    }
+
+    // === UTILITY METHODS ===
+
+    /**
+     * Enhanced URL building with API versioning support
+     * @param {string} urlOrPath - Full URL or path
+     * @param {object} params - Query parameters
+     * @returns {string} - Complete URL
+     */
+    buildUrl(urlOrPath, params) {
+        let fullUrl;
+
+        // Check if it's a full URL (starts with http/https or protocol-relative //)
+        if (this.isFullUrl(urlOrPath)) {
+            fullUrl = urlOrPath;
+        } else {
+            // It's a relative path, build with baseURL and apiVersion
+            const cleanPath = urlOrPath.startsWith('/') ? urlOrPath.substring(1) : urlOrPath;
+
+            if (this.apiVersion) {
+                fullUrl = `${this.baseURL}/${this.apiVersion}/${cleanPath}`;
+            } else {
+                fullUrl = `${this.baseURL}/${cleanPath}`;
+            }
+        }
+
+        // Add query parameters if present
+        if (!params) return fullUrl;
+
+        const urlObj = new URL(fullUrl);
+        Object.entries(params).forEach(([key, value]) => {
+            if (value !== null && value !== undefined) {
+                urlObj.searchParams.append(key, value);
+            }
+        });
+
+        return urlObj.toString();
+    }
+
+    /**
+     * Check if URL is a full URL
+     * @param {string} url - URL to check
+     * @returns {boolean} - True if it's a full URL
+     */
+    isFullUrl(url) {
+        return url.startsWith('http://') ||
+               url.startsWith('https://') ||
+               url.startsWith('//') ||
+               url.startsWith('file://') ||
+               url.startsWith('data:');
     }
 
     /**
@@ -441,51 +532,48 @@ class HTTPClient {
     /**
      * Create response object
      */
-     /**
-  * Create response object
-  */
- async createResponseObject(response, config) {
-     const responseObj = {
-         status: response.status,
-         statusText: response.statusText,
-         headers: this.responseHeadersToObject(response.headers),
-         config: config,
-         url: response.url
-     };
+    async createResponseObject(response, config) {
+        const responseObj = {
+            status: response.status,
+            statusText: response.statusText,
+            headers: this.responseHeadersToObject(response.headers),
+            config: config,
+            url: response.url
+        };
 
-     // Parse response data based on content type
-     const contentType = response.headers.get('content-type') || '';
+        // Parse response data based on content type
+        const contentType = response.headers.get('content-type') || '';
 
-     try {
-         if (config.responseType === 'blob') {
-             responseObj.data = await response.blob();
-         } else if (contentType.includes('application/json')) {
-             const textResponse = await response.text();
-             // Try to parse as JSON, if it fails, store the raw text
-             try {
-                 responseObj.data = JSON.parse(textResponse);
-             } catch (jsonError) {
-                 this.log('JSON parse failed, storing raw text:', textResponse.substring(0, 100));
-                 responseObj.data = textResponse;
-             }
-         } else if (contentType.includes('text/')) {
-             responseObj.data = await response.text();
-         } else {
-             responseObj.data = await response.arrayBuffer();
-         }
-     } catch (error) {
-         this.log('Failed to parse response:', error.message);
-         // Try to get the raw response as text as a fallback
-         try {
-             responseObj.data = await response.text();
-         } catch (fallbackError) {
-             this.log('Failed to get response as text:', fallbackError.message);
-             responseObj.data = null;
-         }
-     }
+        try {
+            if (config.responseType === 'blob') {
+                responseObj.data = await response.blob();
+            } else if (contentType.includes('application/json')) {
+                const textResponse = await response.text();
+                // Try to parse as JSON, if it fails, store the raw text
+                try {
+                    responseObj.data = JSON.parse(textResponse);
+                } catch (jsonError) {
+                    this.log('JSON parse failed, storing raw text:', textResponse.substring(0, 100));
+                    responseObj.data = textResponse;
+                }
+            } else if (contentType.includes('text/')) {
+                responseObj.data = await response.text();
+            } else {
+                responseObj.data = await response.arrayBuffer();
+            }
+        } catch (error) {
+            this.log('Failed to parse response:', error.message);
+            // Try to get the raw response as text as a fallback
+            try {
+                responseObj.data = await response.text();
+            } catch (fallbackError) {
+                this.log('Failed to get response as text:', fallbackError.message);
+                responseObj.data = null;
+            }
+        }
 
-     return responseObj;
-   }
+        return responseObj;
+    }
 
     /**
      * Handle mock requests
@@ -519,27 +607,6 @@ class HTTPClient {
             config: config,
             url: url
         };
-    }
-
-    // === UTILITY METHODS ===
-
-    /**
-     * Build URL with query parameters
-     */
-    buildUrl(url, params) {
-        // Handle relative URLs
-        const fullUrl = url.startsWith('http') ? url : `${this.baseURL}${url}`;
-
-        if (!params) return fullUrl;
-
-        const urlObj = new URL(fullUrl);
-        Object.entries(params).forEach(([key, value]) => {
-            if (value !== null && value !== undefined) {
-                urlObj.searchParams.append(key, value);
-            }
-        });
-
-        return urlObj.toString();
     }
 
     /**
@@ -728,6 +795,8 @@ class HTTPClient {
             cacheSize: this.cache.size,
             mockMode: this.mockMode,
             mockDataCount: this.mockData.size,
+            baseURL: this.baseURL,
+            apiVersion: this.apiVersion,
             interceptors: {
                 request: this.interceptors.request.length,
                 response: this.interceptors.response.length,
@@ -737,59 +806,44 @@ class HTTPClient {
     }
 }
 
-// Usage Examples:
-/*
+// Create global instance
+const API = new HTTPClient();
 
-// Basic configuration
-HTTPClient.configure({
+// Export for different environments
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = { HTTPClient, API };
+}
+
+if (typeof window !== 'undefined') {
+    window.HTTPClient = HTTPClient;
+    window.API = API;
+    console.log('✅ Enhanced HTTPClient with API versioning loaded');
+}
+
+/*
+Usage Examples:
+
+// Configuration with API versioning
+API.configure({
     baseURL: 'https://api.example.com',
+    apiVersion: 'v2.0',  // NEW: API version support
     debug: true,
     timeout: 10000
 });
 
-// Set auth token
-HTTPClient.setAuthToken('your-jwt-token');
+// These calls will automatically use the apiVersion:
+await API.get('/users');           // → https://api.example.com/v2.0/users
+await API.post('/auth/login', {});  // → https://api.example.com/v2.0/auth/login
+await API.get('templates/Login');   // → https://api.example.com/v2.0/templates/Login
 
-// Basic requests
-const users = await HTTPClient.get('/users');
-const newUser = await HTTPClient.post('/users', { name: 'John', email: 'john@example.com' });
+// Full URLs bypass versioning:
+await API.get('https://external-api.com/data');  // → https://external-api.com/data
 
-// With parameters
-const filteredUsers = await HTTPClient.get('/users', {
-    params: { role: 'admin', active: true }
-});
+// Override version for specific calls:
+API.configure({ apiVersion: 'v1.0' });
+await API.get('/legacy-endpoint');  // → https://api.example.com/v1.0/legacy-endpoint
 
-// Mock mode for testing
-HTTPClient.setMockMode(true);
-HTTPClient.addMockData('/users', [
-    { id: 1, name: 'John Doe', email: 'john@example.com' }
-]);
-
-// Batch requests
-const results = await HTTPClient.batch([
-    '/users',
-    '/orders',
-    { url: '/stats', options: { cache: false } }
-]);
-
-// File upload
-const fileInput = document.getElementById('file');
-const response = await HTTPClient.upload('/upload', fileInput.files[0]);
-
-// File download
-await HTTPClient.download('/export/users.csv', 'users.csv');
-
-// Add interceptors
-HTTPClient.addRequestInterceptor(async (config) => {
-    config.headers['X-Request-ID'] = generateRequestId();
-    return config;
-});
-
-HTTPClient.addErrorInterceptor(async (error) => {
-    if (error.status === 401) {
-        // Handle authentication error
-        window.location.href = '/login';
-    }
-});
-
+// No version:
+API.configure({ apiVersion: '' });
+await API.get('/health');          // → https://api.example.com/health
 */

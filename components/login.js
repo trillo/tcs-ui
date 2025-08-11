@@ -34,7 +34,7 @@ class Login extends BaseComponent {
         };
 
         // Merge login defaults with user options first
-        const mergedOptions = BaseComponent.deepMerge(loginDefaults, options);
+        const mergedOptions = Utils.deepMerge(loginDefaults, options);
 
         // Then call parent with merged options
         super(container, mergedOptions);
