@@ -1,11 +1,12 @@
 /**
- * WebSocketDataManager - Handles real-time data via WebSocket connections
- * Supports path-based URLs, authentication tokens, reconnection, message queuing, and event-driven data updates
+ * WebSocketDataManager - Enhanced real-time data via WebSocket connections
+ * Supports Utils integration, API versioning, and improved configuration merging
  */
 
 class WebSocketDataManager {
     constructor(config = {}) {
-        this.config = {
+        // Default configuration
+        const defaultConfig = {
             path: '',               // WebSocket path (e.g., '/live', '/notifications')
             protocols: [],
             reconnect: true,
@@ -18,15 +19,20 @@ class WebSocketDataManager {
             queueMessages: true,
             maxQueueSize: 100,
             baseURL: null,          // Override default WebSocket base URL
+            apiVersion: null,       // Override default API version if needed
+            useGlobalConfig: true,  // Whether to use global API configuration
             token: null,            // Auth token
-            tokenType: 'Bearer',    // Token type
-            ...config
+            tokenType: 'Bearer'     // Token type
         };
 
         // Handle legacy 'url' parameter for backward compatibility
         if (config.url && !config.path) {
-            this.config.path = config.url;
+            config.path = config.url;
+            delete config.url; // Clean up legacy property
         }
+
+        // Use Utils.deepMerge for proper configuration merging
+        this.config = Utils.deepMerge(defaultConfig, config);
 
         this.ws = null;
         this.readyState = WebSocket.CLOSED;
@@ -45,33 +51,102 @@ class WebSocketDataManager {
         this.handleMessage = this.handleMessage.bind(this);
         this.handleError = this.handleError.bind(this);
         this.handleClose = this.handleClose.bind(this);
+
+        Utils.log('WebSocketDataManager', 'log', 'Initialized with config:', this.config);
     }
 
     /**
-     * Get WebSocket URL from environment and path
+     * Get default configuration for WebSocketDataManager
+     */
+    static getDefaultConfig() {
+        return {
+            path: '',
+            protocols: [],
+            reconnect: true,
+            reconnectInterval: 5000,
+            maxReconnectAttempts: 10,
+            timeout: 30000,
+            heartbeatInterval: 30000,
+            heartbeatMessage: { type: 'ping' },
+            autoParseJSON: true,
+            queueMessages: true,
+            maxQueueSize: 100,
+            baseURL: null,
+            apiVersion: null,
+            useGlobalConfig: true,
+            token: null,
+            tokenType: 'Bearer'
+        };
+    }
+
+    /**
+     * Get WebSocket base URL from global configuration or fallback
+     */
+    getBaseURL() {
+        if (this.config.baseURL) {
+            return this.config.baseURL;
+        }
+
+        if (this.config.useGlobalConfig) {
+            // Priority: 1. Global WS variable, 2. Environment variable, 3. Derived from API base, 4. Default
+            let baseURL = window.WS_BASE_URL ||
+                          (typeof process !== 'undefined' && process.env?.WS_BASE_URL);
+
+            // If no WebSocket base URL, derive from API base URL
+            if (!baseURL && (window.API_BASE_URL || (typeof process !== 'undefined' && process.env?.API_BASE_URL))) {
+                const apiBase = window.API_BASE_URL || process.env?.API_BASE_URL;
+                baseURL = apiBase.replace(/^https?:/, 'ws:').replace(/^http:/, 'ws:').replace(/^https:/, 'wss:');
+            }
+
+            // Default fallback
+            if (!baseURL) {
+                baseURL = window.location.protocol === 'https:' ? 'wss://localhost:3001' : 'ws://localhost:3001';
+            }
+
+            return baseURL;
+        }
+
+        // Fallback when not using global config
+        return window.location.protocol === 'https:' ? 'wss://localhost:3001' : 'ws://localhost:3001';
+    }
+
+    /**
+     * Get API version from global configuration or fallback
+     */
+    getApiVersion() {
+        if (this.config.apiVersion !== null) {
+            return this.config.apiVersion;
+        }
+
+        if (this.config.useGlobalConfig) {
+            return window.API_VERSION || '';
+        }
+
+        return ''; // No version by default for WebSocket
+    }
+
+    /**
+     * Build WebSocket URL with API versioning support
      */
     getWebSocketURL() {
-        // Priority: 1. Explicit config, 2. Environment variable, 3. Derived from API base, 4. Default
-        let baseURL = this.config.baseURL ||
-                      window.WS_BASE_URL ||
-                      process?.env?.WS_BASE_URL;
+        const baseURL = this.getBaseURL().replace(/\/$/, ''); // Remove trailing slash
+        const apiVersion = this.getApiVersion();
 
-        // If no WebSocket base URL, derive from API base URL
-        if (!baseURL && (window.API_BASE_URL || process?.env?.API_BASE_URL)) {
-            const apiBase = window.API_BASE_URL || process?.env?.API_BASE_URL;
-            baseURL = apiBase.replace(/^https?:/, 'ws:').replace(/^http:/, 'ws:').replace(/^https:/, 'wss:');
+        let path = this.config.path;
+
+        // Ensure path starts with /
+        if (!path.startsWith('/')) {
+            path = `/${path}`;
         }
 
-        // Default fallback
-        if (!baseURL) {
-            baseURL = window.location.protocol === 'https:' ? 'wss://localhost:3001' : 'ws://localhost:3001';
+        // Build URL with versioning
+        if (apiVersion) {
+            // Clean version (remove leading/trailing slashes)
+            const cleanVersion = apiVersion.replace(/^\/|\/$/g, '');
+            return `${baseURL}/${cleanVersion}${path}`;
+        } else {
+            return `${baseURL}${path}`;
         }
-
-        // Remove trailing slash and add path
-        baseURL = baseURL.replace(/\/$/, '');
-        const path = this.config.path.startsWith('/') ? this.config.path : `/${this.config.path}`;
-
-        return `${baseURL}${path}`;
     }
 
     /**
@@ -106,6 +181,7 @@ class WebSocketDataManager {
             });
         }
 
+        Utils.log('WebSocketDataManager', 'log', 'Authentication token set');
         return this;
     }
 
@@ -115,6 +191,7 @@ class WebSocketDataManager {
     removeAuth() {
         this.config.token = null;
         this.config.tokenType = 'Bearer';
+        Utils.log('WebSocketDataManager', 'log', 'Authentication token removed');
         return this;
     }
 
@@ -127,12 +204,13 @@ class WebSocketDataManager {
         return new Promise((resolve, reject) => {
             // If already connected, resolve with last data
             if (this.readyState === WebSocket.OPEN && this.lastData !== null) {
+                Utils.log('WebSocketDataManager', 'log', 'Returning cached data from existing connection');
                 resolve(this.lastData);
                 return;
             }
 
             // Store promise for resolution when data arrives
-            const promiseId = `load_${Date.now()}_${Math.random()}`;
+            const promiseId = Utils.generateId ? Utils.generateId('load') : `load_${Date.now()}_${Math.random()}`;
             this.pendingPromises.set(promiseId, { resolve, reject, type: 'load' });
 
             // Set timeout for load operation
@@ -166,6 +244,8 @@ class WebSocketDataManager {
             const wsURL = this.getWebSocketURL();
             const urlWithAuth = this.addAuthToURL(wsURL);
 
+            Utils.log('WebSocketDataManager', 'log', 'Connecting to:', urlWithAuth.replace(/token=[^&]*/, 'token=***'));
+
             // Create WebSocket connection
             if (this.config.protocols.length > 0) {
                 this.ws = new WebSocket(urlWithAuth, this.config.protocols);
@@ -179,9 +259,14 @@ class WebSocketDataManager {
             this.ws.addEventListener('error', this.handleError);
             this.ws.addEventListener('close', this.handleClose);
 
-            this.emit('connecting', { url: urlWithAuth, attempt: this.reconnectAttempts + 1 });
+            this.emit('connecting', {
+                url: wsURL, // Don't include token in event data
+                attempt: this.reconnectAttempts + 1,
+                connectionId: this.connectionId
+            });
 
         } catch (error) {
+            Utils.log('WebSocketDataManager', 'error', 'Connection error:', error.message);
             this.handleError({ error });
         }
     }
@@ -193,6 +278,7 @@ class WebSocketDataManager {
         this.readyState = WebSocket.OPEN;
         this.reconnectAttempts = 0;
 
+        Utils.log('WebSocketDataManager', 'log', 'Connected successfully');
         this.emit('connected', { event, connectionId: this.connectionId });
 
         // Send authentication if token available
@@ -228,6 +314,7 @@ class WebSocketDataManager {
                     data = JSON.parse(data);
                 } catch (parseError) {
                     // Keep as string if JSON parsing fails
+                    Utils.log('WebSocketDataManager', 'warn', 'Failed to parse JSON message:', parseError.message);
                 }
             }
 
@@ -249,6 +336,7 @@ class WebSocketDataManager {
             this.handleSpecificMessage(data);
 
         } catch (error) {
+            Utils.log('WebSocketDataManager', 'error', 'Message handling error:', error.message);
             this.emit('error', { error, event });
         }
     }
@@ -259,6 +347,7 @@ class WebSocketDataManager {
     handleError(event) {
         const error = event.error || new Error('WebSocket error occurred');
 
+        Utils.log('WebSocketDataManager', 'error', 'WebSocket error:', error.message);
         this.emit('error', { error, event });
 
         // Reject pending promises
@@ -273,6 +362,12 @@ class WebSocketDataManager {
 
         // Clear heartbeat
         this.stopHeartbeat();
+
+        Utils.log('WebSocketDataManager', 'log', 'Disconnected:', {
+            code: event.code,
+            reason: event.reason,
+            wasClean: event.wasClean
+        });
 
         this.emit('disconnected', {
             event,
@@ -292,10 +387,11 @@ class WebSocketDataManager {
     }
 
     /**
-     * Attempt to reconnect
+     * Attempt to reconnect with exponential backoff
      */
     attemptReconnect() {
         if (this.reconnectAttempts >= this.config.maxReconnectAttempts) {
+            Utils.log('WebSocketDataManager', 'error', 'Max reconnection attempts reached');
             this.emit('reconnect_failed', {
                 attempts: this.reconnectAttempts,
                 maxAttempts: this.config.maxReconnectAttempts
@@ -306,15 +402,23 @@ class WebSocketDataManager {
 
         this.reconnectAttempts++;
 
+        // Exponential backoff with jitter
+        const baseDelay = this.config.reconnectInterval;
+        const exponentialDelay = baseDelay * Math.pow(2, this.reconnectAttempts - 1);
+        const jitter = Math.random() * 1000; // Add up to 1 second of jitter
+        const delay = Math.min(exponentialDelay + jitter, 30000); // Cap at 30 seconds
+
+        Utils.log('WebSocketDataManager', 'log', `Reconnecting in ${Math.round(delay)}ms (attempt ${this.reconnectAttempts}/${this.config.maxReconnectAttempts})`);
+
         this.emit('reconnecting', {
             attempt: this.reconnectAttempts,
             maxAttempts: this.config.maxReconnectAttempts,
-            delay: this.config.reconnectInterval
+            delay: delay
         });
 
         this.reconnectTimer = setTimeout(() => {
             this.connect();
-        }, this.config.reconnectInterval);
+        }, delay);
     }
 
     /**
@@ -328,6 +432,7 @@ class WebSocketDataManager {
                 this.emit('sent', { message, messageStr });
                 return true;
             } catch (error) {
+                Utils.log('WebSocketDataManager', 'error', 'Send error:', error.message);
                 this.emit('error', { error, context: 'send' });
                 return false;
             }
@@ -346,6 +451,7 @@ class WebSocketDataManager {
     queueMessage(message) {
         if (this.messageQueue.length >= this.config.maxQueueSize) {
             this.messageQueue.shift(); // Remove oldest message
+            Utils.log('WebSocketDataManager', 'warn', 'Message queue full, removing oldest message');
         }
 
         this.messageQueue.push({
@@ -360,9 +466,14 @@ class WebSocketDataManager {
      * Send all queued messages
      */
     sendQueuedMessages() {
-        while (this.messageQueue.length > 0) {
-            const { message } = this.messageQueue.shift();
-            this.send(message);
+        const queueSize = this.messageQueue.length;
+        if (queueSize > 0) {
+            Utils.log('WebSocketDataManager', 'log', `Sending ${queueSize} queued messages`);
+
+            while (this.messageQueue.length > 0) {
+                const { message } = this.messageQueue.shift();
+                this.send(message);
+            }
         }
     }
 
@@ -376,6 +487,8 @@ class WebSocketDataManager {
                     this.send(this.config.heartbeatMessage);
                 }
             }, this.config.heartbeatInterval);
+
+            Utils.log('WebSocketDataManager', 'log', 'Heartbeat started:', this.config.heartbeatInterval + 'ms');
         }
     }
 
@@ -386,6 +499,7 @@ class WebSocketDataManager {
         if (this.heartbeatTimer) {
             clearInterval(this.heartbeatTimer);
             this.heartbeatTimer = null;
+            Utils.log('WebSocketDataManager', 'log', 'Heartbeat stopped');
         }
     }
 
@@ -393,7 +507,7 @@ class WebSocketDataManager {
      * Check if message is a heartbeat response
      */
     isHeartbeatResponse(data) {
-        if (typeof data === 'object' && data.type) {
+        if (typeof data === 'object' && data && data.type) {
             return data.type === 'pong' || data.type === 'heartbeat';
         }
         return false;
@@ -403,7 +517,7 @@ class WebSocketDataManager {
      * Handle specific message types
      */
     handleSpecificMessage(data) {
-        if (typeof data === 'object' && data.type) {
+        if (typeof data === 'object' && data && data.type) {
             this.emit(`message:${data.type}`, { data });
         }
     }
@@ -466,7 +580,7 @@ class WebSocketDataManager {
                 try {
                     callback(data);
                 } catch (error) {
-                    console.error(`Error in WebSocket event listener for ${event}:`, error);
+                    Utils.log('WebSocketDataManager', 'error', `Error in event listener for ${event}:`, error.message);
                 }
             });
         }
@@ -507,10 +621,11 @@ class WebSocketDataManager {
     }
 
     /**
-     * Update configuration
+     * Update configuration using Utils.deepMerge
      */
     configure(newConfig) {
-        this.config = { ...this.config, ...newConfig };
+        this.config = Utils.deepMerge(this.config, newConfig);
+        Utils.log('WebSocketDataManager', 'log', 'Configuration updated:', newConfig);
         return this;
     }
 
@@ -541,6 +656,22 @@ class WebSocketDataManager {
     }
 
     /**
+     * Set API version for this instance
+     */
+    setApiVersion(version) {
+        this.config.apiVersion = version;
+        return this;
+    }
+
+    /**
+     * Enable/disable global configuration usage
+     */
+    setUseGlobalConfig(enabled) {
+        this.config.useGlobalConfig = enabled;
+        return this;
+    }
+
+    /**
      * Clear message queue
      */
     clearQueue() {
@@ -563,10 +694,13 @@ class WebSocketDataManager {
             connectionId: this.connectionId,
             config: {
                 path: this.config.path,
-                baseURL: this.getWebSocketURL(),
+                baseURL: this.getBaseURL(),
+                apiVersion: this.getApiVersion(),
+                fullURL: this.getWebSocketURL(),
                 reconnect: this.config.reconnect,
                 heartbeatInterval: this.config.heartbeatInterval,
                 maxReconnectAttempts: this.config.maxReconnectAttempts,
+                useGlobalConfig: this.config.useGlobalConfig,
                 hasToken: !!this.config.token
             }
         };
@@ -576,7 +710,7 @@ class WebSocketDataManager {
      * Create a new WebSocketDataManager with the same config
      */
     clone() {
-        return new WebSocketDataManager({ ...this.config });
+        return new WebSocketDataManager(Utils.deepClone(this.config));
     }
 
     /**
@@ -609,6 +743,8 @@ class WebSocketDataManager {
         this.ws = null;
         this.config = null;
         this.lastData = null;
+
+        Utils.log('WebSocketDataManager', 'log', 'Destroyed');
     }
 
     /**
@@ -633,5 +769,5 @@ if (typeof module !== 'undefined' && module.exports) {
 
 if (typeof window !== 'undefined') {
     window.WebSocketDataManager = WebSocketDataManager;
-    console.log('✅ WebSocketDataManager loaded');
+    console.log('✅ Enhanced WebSocketDataManager with Utils integration and API versioning loaded');
 }

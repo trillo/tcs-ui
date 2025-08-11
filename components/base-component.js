@@ -416,32 +416,7 @@ class BaseComponent {
      * Extract error message from response or error object
      */
     extractErrorMessage(errorOrResponse) {
-        if (!errorOrResponse) {
-            return 'Login failed. Please try again.';
-        }
-
-        // API response patterns
-        if (errorOrResponse.response && errorOrResponse.response.data) {
-            const data = errorOrResponse.response.data;
-            if (data.message) return data.message;
-            if (data.error) return data.error;
-            if (data.errors && Array.isArray(data.errors) && data.errors.length > 0) {
-                return data.errors[0].message || data.errors[0];
-            }
-        }
-
-        if (errorOrResponse.message) return errorOrResponse.message;
-        if (errorOrResponse.error) return errorOrResponse.error;
-
-        // Network errors
-        if (errorOrResponse.name === 'TypeError' && errorOrResponse.message &&
-            errorOrResponse.message.indexOf('fetch') !== -1) {
-            return 'Network error. Please check your connection and try again.';
-        }
-
-        if (typeof errorOrResponse === 'string') return errorOrResponse;
-
-        return 'Login failed. Please check your credentials and try again.';
+        return Utils.extractErrorMessage(errorOrResponse);
     }
 
     /**

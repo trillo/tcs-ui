@@ -418,6 +418,49 @@ class Utils {
     }
 
     /**
+     * Extract error message from response or error object
+     * Centralized error message extraction for consistent error handling
+     * @param {*} errorOrResponse - Error object or API response
+     * @returns {string} - Extracted error message
+     */
+    static extractErrorMessage(errorOrResponse) {
+        if (!errorOrResponse) {
+            return 'An unknown error occurred';
+        }
+
+        // API response patterns
+        if (errorOrResponse.response && errorOrResponse.response.data) {
+            const data = errorOrResponse.response.data;
+            if (data.message) return data.message;
+            if (data.error) return data.error;
+            if (data.errors && Array.isArray(data.errors) && data.errors.length > 0) {
+                return data.errors[0].message || data.errors[0];
+            }
+        }
+
+        // Direct response with error info
+        if (errorOrResponse.message) return errorOrResponse.message;
+        if (errorOrResponse.error) return errorOrResponse.error;
+
+        // Network errors
+        if (errorOrResponse.name === 'TypeError' && errorOrResponse.message &&
+            errorOrResponse.message.indexOf('fetch') !== -1) {
+            return 'Network error. Please check your connection and try again.';
+        }
+
+        // String errors
+        if (typeof errorOrResponse === 'string') return errorOrResponse;
+
+        // HTTP status errors
+        if (errorOrResponse.status) {
+            const statusMessage = errorOrResponse.statusText || 'Unknown Error';
+            return `HTTP ${errorOrResponse.status}: ${statusMessage}`;
+        }
+
+        return 'An error occurred. Please try again.';
+    }
+
+    /**
      * Log with prefix and styling
      * @param {string} prefix - Log prefix
      * @param {string} level - Log level (log, warn, error)

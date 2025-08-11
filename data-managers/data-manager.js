@@ -1,11 +1,12 @@
 /**
- * DataManager - Handles API data fetching and management
- * Simplified to work with environment-based base URLs and path-based requests
+ * DataManager - Enhanced API data fetching and management
+ * Supports Utils integration, API versioning, and improved configuration merging
  */
 
 class DataManager {
     constructor(config = {}) {
-        this.config = {
+        // Default configuration
+        const defaultConfig = {
             path: '',           // API path (e.g., '/users', '/auth/login')
             method: 'GET',
             params: {},
@@ -19,17 +20,47 @@ class DataManager {
             cache: false,
             cacheTimeout: 300000, // 5 minutes
             baseURL: null,      // Override default base URL if needed
-            ...config
+            apiVersion: null,   // Override default API version if needed
+            useGlobalConfig: true // Whether to use global API configuration
         };
 
         // Handle legacy 'url' parameter for backward compatibility
         if (config.url && !config.path) {
-            this.config.path = config.url;
+            config.path = config.url;
+            delete config.url; // Clean up legacy property
         }
+
+        // Use Utils.deepMerge for proper configuration merging
+        this.config = Utils.deepMerge(defaultConfig, config);
 
         this.loadCount = 0;
         this.cache = new Map();
         this.abortController = null;
+
+        Utils.log('DataManager', 'log', 'Initialized with config:', this.config);
+    }
+
+    /**
+     * Get default configuration for DataManager
+     */
+    static getDefaultConfig() {
+        return {
+            path: '',
+            method: 'GET',
+            params: {},
+            body: {},
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            timeout: 30000,
+            retries: 3,
+            retryDelay: 1000,
+            cache: false,
+            cacheTimeout: 300000,
+            baseURL: null,
+            apiVersion: null,
+            useGlobalConfig: true
+        };
     }
 
     /**
@@ -37,9 +68,13 @@ class DataManager {
      */
     setAuth(token, type = 'Bearer') {
         if (token) {
-            this.config.headers['Authorization'] = `${type} ${token}`;
+            this.config.headers = Utils.deepMerge(this.config.headers, {
+                'Authorization': `${type} ${token}`
+            });
         } else {
-            delete this.config.headers['Authorization'];
+            const headers = { ...this.config.headers };
+            delete headers['Authorization'];
+            this.config.headers = headers;
         }
         return this;
     }
@@ -48,29 +83,69 @@ class DataManager {
      * Remove authentication
      */
     removeAuth() {
-        delete this.config.headers['Authorization'];
+        const headers = { ...this.config.headers };
+        delete headers['Authorization'];
+        this.config.headers = headers;
         return this;
-    }
-    
-    /**
-     * Get base URL from environment or configuration
-     */
-    getBaseURL() {
-        // Priority: 1. Explicit config, 2. Environment variable, 3. Current origin, 4. Default
-        return this.config.baseURL ||
-               window.API_BASE_URL ||
-               process?.env?.API_BASE_URL ||
-               window.location.origin ||
-               'http://localhost:3000';
     }
 
     /**
-     * Build full URL from base URL and path
+     * Get base URL from global configuration or fallback
+     */
+    getBaseURL() {
+        if (this.config.baseURL) {
+            return this.config.baseURL;
+        }
+
+        if (this.config.useGlobalConfig) {
+            // Priority: 1. Global window variable, 2. Environment variable, 3. Fallbacks
+            return window.API_BASE_URL ||
+                   (typeof process !== 'undefined' && process.env?.API_BASE_URL) ||
+                   window.location.origin ||
+                   'http://localhost:3000';
+        }
+
+        // Fallback when not using global config
+        return window.location.origin || 'http://localhost:3000';
+    }
+
+    /**
+     * Get API version from global configuration or fallback
+     */
+    getApiVersion() {
+        if (this.config.apiVersion !== null) {
+            return this.config.apiVersion;
+        }
+
+        if (this.config.useGlobalConfig) {
+            return window.API_VERSION || 'v1.0';
+        }
+
+        return ''; // No version by default
+    }
+
+    /**
+     * Build full URL with API versioning support
      */
     buildFullURL() {
         const baseURL = this.getBaseURL().replace(/\/$/, ''); // Remove trailing slash
-        const path = this.config.path.startsWith('/') ? this.config.path : `/${this.config.path}`;
-        return `${baseURL}${path}`;
+        const apiVersion = this.getApiVersion();
+
+        let path = this.config.path;
+
+        // Ensure path starts with /
+        if (!path.startsWith('/')) {
+            path = `/${path}`;
+        }
+
+        // Build URL with versioning
+        if (apiVersion) {
+            // Clean version (remove leading/trailing slashes)
+            const cleanVersion = apiVersion.replace(/^\/|\/$/g, '');
+            return `${baseURL}/${cleanVersion}${path}`;
+        } else {
+            return `${baseURL}${path}`;
+        }
     }
 
     /**
@@ -83,13 +158,14 @@ class DataManager {
         if (this.config.cache) {
             const cached = this.getCachedData();
             if (cached) {
+                Utils.log('DataManager', 'log', 'Cache hit for:', this.config.path);
                 return cached;
             }
         }
 
         let lastError;
 
-        // Retry logic
+        // Retry logic with exponential backoff
         for (let attempt = 1; attempt <= this.config.retries; attempt++) {
             try {
                 const data = await this.fetchData();
@@ -99,6 +175,7 @@ class DataManager {
                     this.setCachedData(data);
                 }
 
+                Utils.log('DataManager', 'log', `Load successful (attempt ${attempt}):`, this.config.path);
                 return data;
 
             } catch (error) {
@@ -106,16 +183,20 @@ class DataManager {
 
                 // Don't retry on certain errors
                 if (this.isNonRetryableError(error)) {
+                    Utils.log('DataManager', 'warn', 'Non-retryable error:', error.message);
                     throw error;
                 }
 
-                // Wait before retry (except on last attempt)
+                // Wait before retry (except on last attempt) with exponential backoff
                 if (attempt < this.config.retries) {
-                    await this.delay(this.config.retryDelay * attempt);
+                    const delay = this.config.retryDelay * Math.pow(2, attempt - 1);
+                    Utils.log('DataManager', 'warn', `Attempt ${attempt} failed, retrying in ${delay}ms:`, error.message);
+                    await this.delay(delay);
                 }
             }
         }
 
+        Utils.log('DataManager', 'error', 'All retry attempts failed:', lastError.message);
         throw lastError;
     }
 
@@ -125,7 +206,7 @@ class DataManager {
     async fetchData() {
         const { method, params, body, headers, timeout } = this.config;
 
-        // Build full URL with parameters
+        // Build full URL with parameters and versioning
         const fullURL = this.buildFullURL();
         const requestUrl = this.buildURLWithParams(fullURL, params);
 
@@ -153,6 +234,8 @@ class DataManager {
                     options.body = body;
                 }
             }
+
+            Utils.log('DataManager', 'log', 'Making request:', method.toUpperCase(), requestUrl);
 
             // Make the request
             const response = await fetch(requestUrl, options);
@@ -184,25 +267,31 @@ class DataManager {
             const error = new Error(errorMessage);
             error.status = response.status;
             error.statusText = response.statusText;
+            error.response = response;
             throw error;
         }
 
         // Parse response based on content type
         const contentType = response.headers.get('content-type') || '';
 
-        if (contentType.includes('application/json')) {
-            return await response.json();
-        } else if (contentType.includes('text/')) {
-            return await response.text();
-        } else if (contentType.includes('application/xml')) {
-            return await response.text();
-        } else {
-            return await response.blob();
+        try {
+            if (contentType.includes('application/json')) {
+                return await response.json();
+            } else if (contentType.includes('text/')) {
+                return await response.text();
+            } else if (contentType.includes('application/xml')) {
+                return await response.text();
+            } else {
+                return await response.blob();
+            }
+        } catch (parseError) {
+            Utils.log('DataManager', 'warn', 'Failed to parse response:', parseError.message);
+            throw new Error(`Failed to parse response: ${parseError.message}`);
         }
     }
 
     /**
-     * Get error message from response
+     * Get error message from response using Utils
      */
     async getErrorMessage(response) {
         try {
@@ -210,7 +299,11 @@ class DataManager {
 
             if (contentType.includes('application/json')) {
                 const errorData = await response.json();
-                return errorData.message || errorData.error || `HTTP ${response.status}: ${response.statusText}`;
+
+                // Use Utils.extractErrorMessage for consistent error extraction
+                return Utils.extractErrorMessage ?
+                       Utils.extractErrorMessage(errorData) :
+                       (errorData.message || errorData.error || `HTTP ${response.status}: ${response.statusText}`);
             } else {
                 const errorText = await response.text();
                 return errorText || `HTTP ${response.status}: ${response.statusText}`;
@@ -254,9 +347,9 @@ class DataManager {
      * Check if error should not be retried
      */
     isNonRetryableError(error) {
-        // Don't retry client errors (400-499)
+        // Don't retry client errors (400-499) except 408 (timeout), 429 (rate limit)
         if (error.status >= 400 && error.status < 500) {
-            return true;
+            return ![408, 429].includes(error.status);
         }
 
         // Don't retry abort errors
@@ -322,34 +415,19 @@ class DataManager {
     }
 
     /**
-     * Update configuration
+     * Update configuration using Utils.deepMerge
      */
     configure(newConfig) {
-        this.config = { ...this.config, ...newConfig };
+        this.config = Utils.deepMerge(this.config, newConfig);
+        Utils.log('DataManager', 'log', 'Configuration updated:', newConfig);
         return this;
     }
 
     /**
-     * Set request headers
+     * Set request headers using Utils.deepMerge
      */
     setHeaders(headers) {
-        this.config.headers = { ...this.config.headers, ...headers };
-        return this;
-    }
-
-    /**
-     * Set authentication header
-     */
-    setAuth(token, type = 'Bearer') {
-        this.config.headers['Authorization'] = `${type} ${token}`;
-        return this;
-    }
-
-    /**
-     * Remove authentication header
-     */
-    removeAuth() {
-        delete this.config.headers['Authorization'];
+        this.config.headers = Utils.deepMerge(this.config.headers, headers);
         return this;
     }
 
@@ -380,6 +458,22 @@ class DataManager {
     }
 
     /**
+     * Set API version for this instance
+     */
+    setApiVersion(version) {
+        this.config.apiVersion = version;
+        return this;
+    }
+
+    /**
+     * Enable/disable global configuration usage
+     */
+    setUseGlobalConfig(enabled) {
+        this.config.useGlobalConfig = enabled;
+        return this;
+    }
+
+    /**
      * Abort current request
      */
     abort() {
@@ -401,9 +495,12 @@ class DataManager {
                 path: this.config.path,
                 method: this.config.method,
                 baseURL: this.getBaseURL(),
+                apiVersion: this.getApiVersion(),
+                fullURL: this.buildFullURL(),
                 timeout: this.config.timeout,
                 retries: this.config.retries,
-                cache: this.config.cache
+                cache: this.config.cache,
+                useGlobalConfig: this.config.useGlobalConfig
             }
         };
     }
@@ -412,19 +509,22 @@ class DataManager {
      * Create a new DataManager with the same config
      */
     clone() {
-        return new DataManager({ ...this.config });
+        return new DataManager(Utils.deepClone(this.config));
     }
+
+    /**
+     * Static factory methods with API versioning support
+     */
 
     /**
      * Make a GET request
      */
     static async get(path, params = {}, options = {}) {
-        const manager = new DataManager({
+        const manager = new DataManager(Utils.deepMerge({
             path,
             method: 'GET',
-            params,
-            ...options
-        });
+            params
+        }, options));
         return await manager.load();
     }
 
@@ -432,12 +532,11 @@ class DataManager {
      * Make a POST request
      */
     static async post(path, body = {}, options = {}) {
-        const manager = new DataManager({
+        const manager = new DataManager(Utils.deepMerge({
             path,
             method: 'POST',
-            body,
-            ...options
-        });
+            body
+        }, options));
         return await manager.load();
     }
 
@@ -445,12 +544,11 @@ class DataManager {
      * Make a PUT request
      */
     static async put(path, body = {}, options = {}) {
-        const manager = new DataManager({
+        const manager = new DataManager(Utils.deepMerge({
             path,
             method: 'PUT',
-            body,
-            ...options
-        });
+            body
+        }, options));
         return await manager.load();
     }
 
@@ -458,11 +556,10 @@ class DataManager {
      * Make a DELETE request
      */
     static async delete(path, options = {}) {
-        const manager = new DataManager({
+        const manager = new DataManager(Utils.deepMerge({
             path,
-            method: 'DELETE',
-            ...options
-        });
+            method: 'DELETE'
+        }, options));
         return await manager.load();
     }
 
@@ -470,12 +567,11 @@ class DataManager {
      * Make a PATCH request
      */
     static async patch(path, body = {}, options = {}) {
-        const manager = new DataManager({
+        const manager = new DataManager(Utils.deepMerge({
             path,
             method: 'PATCH',
-            body,
-            ...options
-        });
+            body
+        }, options));
         return await manager.load();
     }
 
@@ -487,6 +583,7 @@ class DataManager {
         this.clearCache();
         this.config = null;
         this.abortController = null;
+        Utils.log('DataManager', 'log', 'Destroyed');
     }
 
     /**
@@ -509,5 +606,5 @@ if (typeof module !== 'undefined' && module.exports) {
 
 if (typeof window !== 'undefined') {
     window.DataManager = DataManager;
-    console.log('✅ DataManager loaded');
+    console.log('✅ Enhanced DataManager with Utils integration and API versioning loaded');
 }
