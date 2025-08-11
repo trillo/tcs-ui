@@ -4,30 +4,9 @@
  */
 
 class ComponentManager {
-    constructor(appConfig = null) {
-        this.appConfig = appConfig;
+    constructor() {
         this.mountedComponents = new Map();
         this.componentRegistry = new Map();
-        this.eventListeners = [];
-
-        // Bind methods
-        this.handleTokenUpdated = this.handleTokenUpdated.bind(this);
-        this.handleTokenRemoved = this.handleTokenRemoved.bind(this);
-
-        // Listen for AppConfig events if provided
-        if (this.appConfig) {
-            this.setupAppConfigListeners();
-        }
-    }
-
-    /**
-     * Setup listeners for AppConfig events
-     */
-    setupAppConfigListeners() {
-        this.appConfig.addEventListener('tokenUpdated', this.handleTokenUpdated);
-        this.appConfig.addEventListener('tokenRemoved', this.handleTokenRemoved);
-
-        console.log('[ComponentManager] AppConfig event listeners setup');
     }
 
     /**
@@ -232,42 +211,6 @@ class ComponentManager {
     }
 
     /**
-     * Handle authentication token update
-     */
-    handleTokenUpdated(event) {
-        const { token } = event.detail;
-
-        this.mountedComponents.forEach(({ component }, containerId) => {
-            try {
-                if (component.setAuth && typeof component.setAuth === 'function') {
-                    component.setAuth(token);
-                }
-            } catch (error) {
-                console.error(`[ComponentManager] Error updating auth for #${containerId}:`, error);
-            }
-        });
-
-        console.log('[ComponentManager] Updated authentication for all components');
-    }
-
-    /**
-     * Handle authentication token removal
-     */
-    handleTokenRemoved(event) {
-        this.mountedComponents.forEach(({ component }, containerId) => {
-            try {
-                if (component.removeAuth && typeof component.removeAuth === 'function') {
-                    component.removeAuth();
-                }
-            } catch (error) {
-                console.error(`[ComponentManager] Error removing auth for #${containerId}:`, error);
-            }
-        });
-
-        console.log('[ComponentManager] Removed authentication from all components');
-    }
-
-    /**
      * Find components by class name
      */
     findComponentsByClass(ComponentClass) {
@@ -377,7 +320,6 @@ class ComponentManager {
         return {
             mountedComponents: this.mountedComponents.size,
             registeredComponents: this.componentRegistry.size,
-            hasAppConfig: !!this.appConfig,
             componentsByClass: this.getComponentsByClass()
         };
     }
@@ -405,12 +347,6 @@ class ComponentManager {
 
         // Clear registrations
         this.componentRegistry.clear();
-
-        // Remove event listeners
-        this.eventListeners.forEach(({ element, event, listener }) => {
-            element.removeEventListener(event, listener);
-        });
-        this.eventListeners = [];
 
         console.log('[ComponentManager] Destroyed');
     }

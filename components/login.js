@@ -740,7 +740,7 @@ class Login extends BaseComponent {
             this.loginAttempts++;
 
             // Direct API call - no DataManager needed
-            const response = await API.post('/api/v2.0/auth/login', this.formData);
+            const response = await API.post('/auth/login', this.formData);
 
             this.setLoading(false);
 

@@ -44,34 +44,24 @@
     <script src="components/login.js"></script>
 
     <script>
+      var environment = 'development';
+      var mockMode = false;
       document.addEventListener('DOMContentLoaded', async function() {
         // 1. Setup application configuration
-        const appConfig = new AppConfig({
-            environment: 'development',
-            debug: true,
-            httpClient: {
-                timeout: 30000,
-                retries: 0,
-                retryDelay: 1000,
-                mockMode: false
-            }
-        });
-        await appConfig.init();
+        const appConfig = new AppConfig();
+        await appConfig.init(environment, mockMode);
 
-        // 2. Create component manager
-        const componentManager = new ComponentManager(appConfig);
-
-        // 3. Register components
+        // 2. Register components
 
         const options = Login.getDefaultOptions();
 
-        componentManager.registerComponent('login', Login, options);
+        appConfig.componentManager.registerComponent('login', Login, options);
 
-        // 4. Mount components
-        componentManager.mountRegisteredComponent('login', 'login-container');
+        // 3. Mount components
+        appConfig.componentManager.mountRegisteredComponent('login', 'login-container');
 
         // Or mount directly
-        // componentManager.mountComponent(Login, 'login-container', options);
+        // appConfig.componentManager.mountComponent(Login, 'login-container', options);
       });
     </script>
 </body>

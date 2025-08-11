@@ -44,24 +44,14 @@
     <script src="components/login.js"></script>
 
     <script>
+      var environment = 'development';
+      var mockMode = false;
       document.addEventListener('DOMContentLoaded', async function() {
         // 1. Setup application configuration
-        const appConfig = new AppConfig({
-            environment: 'development',
-            debug: true,
-            httpClient: {
-                timeout: 30000,
-                retries: 0,
-                retryDelay: 1000,
-                mockMode: true
-            }
-        });
-        await appConfig.init();
+        const appConfig = new AppConfig();
+        await appConfig.init(environment, mockMode);
 
-        // 2. Create component manager
-        const componentManager = new ComponentManager(appConfig);
-
-        // 3. Mount components
+        // 2. Mount components
 
         const urlParams = new URLSearchParams(window.location.search);
         const componentName = urlParams.get('component');
@@ -85,7 +75,7 @@
 
         const options = componentClass.getPreviewOptions();
 
-        componentManager.mountComponent(componentClass, 'preview-container', options);
+        appConfig.componentManager.mountComponent(componentClass, 'preview-container', options);
       });
     </script>
 </body>

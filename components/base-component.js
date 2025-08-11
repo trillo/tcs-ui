@@ -63,13 +63,7 @@ class BaseComponent {
                 onRetry: null,
                 onDestroy: null,
                 ...options.events
-            },
-
-            // Backward compatibility
-            data: options.data || null,
-            url: options.url || '',
-            params: options.params || {},
-            body: options.body || {}
+            }
         };
     }
 

@@ -7,7 +7,7 @@ class DataManager {
     constructor(config = {}) {
         // Default configuration
         const defaultConfig = {
-            path: '',           // API path (e.g., '/users', '/auth/login')
+            path: '',           // API path (e.g., '/users')
             method: 'GET',
             params: {},
             body: {},
@@ -93,35 +93,14 @@ class DataManager {
      * Get base URL from global configuration or fallback
      */
     getBaseURL() {
-        if (this.config.baseURL) {
-            return this.config.baseURL;
-        }
-
-        if (this.config.useGlobalConfig) {
-            // Priority: 1. Global window variable, 2. Environment variable, 3. Fallbacks
-            return window.API_BASE_URL ||
-                   (typeof process !== 'undefined' && process.env?.API_BASE_URL) ||
-                   window.location.origin ||
-                   'http://localhost:3000';
-        }
-
-        // Fallback when not using global config
-        return window.location.origin || 'http://localhost:3000';
+        return this.config.baseURL;
     }
 
     /**
      * Get API version from global configuration or fallback
      */
     getApiVersion() {
-        if (this.config.apiVersion !== null) {
-            return this.config.apiVersion;
-        }
-
-        if (this.config.useGlobalConfig) {
-            return window.API_VERSION || 'v1.0';
-        }
-
-        return ''; // No version by default
+        return window.API_VERSION || 'api/v2.0';
     }
 
     /**

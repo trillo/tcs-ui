@@ -83,46 +83,14 @@ class WebSocketDataManager {
      * Get WebSocket base URL from global configuration or fallback
      */
     getBaseURL() {
-        if (this.config.baseURL) {
-            return this.config.baseURL;
-        }
-
-        if (this.config.useGlobalConfig) {
-            // Priority: 1. Global WS variable, 2. Environment variable, 3. Derived from API base, 4. Default
-            let baseURL = window.WS_BASE_URL ||
-                          (typeof process !== 'undefined' && process.env?.WS_BASE_URL);
-
-            // If no WebSocket base URL, derive from API base URL
-            if (!baseURL && (window.API_BASE_URL || (typeof process !== 'undefined' && process.env?.API_BASE_URL))) {
-                const apiBase = window.API_BASE_URL || process.env?.API_BASE_URL;
-                baseURL = apiBase.replace(/^https?:/, 'ws:').replace(/^http:/, 'ws:').replace(/^https:/, 'wss:');
-            }
-
-            // Default fallback
-            if (!baseURL) {
-                baseURL = window.location.protocol === 'https:' ? 'wss://localhost:3001' : 'ws://localhost:3001';
-            }
-
-            return baseURL;
-        }
-
-        // Fallback when not using global config
-        return window.location.protocol === 'https:' ? 'wss://localhost:3001' : 'ws://localhost:3001';
+        return this.config.baseURL;
     }
 
     /**
      * Get API version from global configuration or fallback
      */
     getApiVersion() {
-        if (this.config.apiVersion !== null) {
-            return this.config.apiVersion;
-        }
-
-        if (this.config.useGlobalConfig) {
-            return window.API_VERSION || '';
-        }
-
-        return ''; // No version by default for WebSocket
+        return this.config.apiVersion;
     }
 
     /**

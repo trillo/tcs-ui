@@ -5,6 +5,7 @@
 
 class HTTPClient {
     constructor() {
+        this.config = {};
         this.baseURL = '';
         this.apiVersion = ''; // New: API version support
         this.defaultHeaders = {
@@ -39,8 +40,9 @@ class HTTPClient {
     /**
      * Configure the HTTP client
      */
-    configure(config) {
-        if (config.baseURL) this.baseURL = config.baseURL.replace(/\/$/, '');
+    configure(baseURL, config) {
+        this.config = config;
+        if (baseURL) this.baseURL = baseURL.replace(/\/$/, '');
         if (config.apiVersion) this.apiVersion = config.apiVersion.replace(/^\/|\/$/g, ''); // Clean leading/trailing slashes
         if (config.headers) this.defaultHeaders = { ...this.defaultHeaders, ...config.headers };
         if (config.timeout) this.timeout = config.timeout;
@@ -322,12 +324,13 @@ class HTTPClient {
         // Normalize options
         const config = {
             method: 'GET',
-            headers: { ...this.defaultHeaders },
             cache: true,
             timeout: this.timeout,
             retries: this.retryAttempts,
             ...options
         };
+
+        config.headers = { ...this.defaultHeaders };
 
         // Build full URL with API versioning
         const fullUrl = this.buildUrl(urlOrPath, config.params);
@@ -806,9 +809,6 @@ class HTTPClient {
     }
 }
 
-// Create global instance
-const API = new HTTPClient();
-
 // Export for different environments
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = { HTTPClient, API };
@@ -816,34 +816,6 @@ if (typeof module !== 'undefined' && module.exports) {
 
 if (typeof window !== 'undefined') {
     window.HTTPClient = HTTPClient;
-    window.API = API;
     console.log('✅ Enhanced HTTPClient with API versioning loaded');
 }
 
-/*
-Usage Examples:
-
-// Configuration with API versioning
-API.configure({
-    baseURL: 'https://api.example.com',
-    apiVersion: 'v2.0',  // NEW: API version support
-    debug: true,
-    timeout: 10000
-});
-
-// These calls will automatically use the apiVersion:
-await API.get('/users');           // → https://api.example.com/v2.0/users
-await API.post('/auth/login', {});  // → https://api.example.com/v2.0/auth/login
-await API.get('templates/Login');   // → https://api.example.com/v2.0/templates/Login
-
-// Full URLs bypass versioning:
-await API.get('https://external-api.com/data');  // → https://external-api.com/data
-
-// Override version for specific calls:
-API.configure({ apiVersion: 'v1.0' });
-await API.get('/legacy-endpoint');  // → https://api.example.com/v1.0/legacy-endpoint
-
-// No version:
-API.configure({ apiVersion: '' });
-await API.get('/health');          // → https://api.example.com/health
-*/

@@ -4,107 +4,60 @@
  */
 
 class AppConfig {
-    constructor(config = {}) {
-        // Default configuration
-        const defaultConfig = {
-            // Environment configuration
-            environment: 'development', // 'development', 'staging', 'production'
-            debug: true,
 
-            // API configuration
-            apiBaseURL: null,
-            apiVersion: 'v2.0', // NEW: API versioning support
-            wsBaseURL: null,
-            metadataBaseURL: null,
+    static httpConfigsByEnvironment = {
+        development: {
+            api: 'https://localhost:9020',
+            ws: 'ws://localhost:9021',
+            metadata: 'https://localhost:9020',
+            apiVersion: 'api/v2.0',
+            debug : true,
+            timeout: 30000,
+            retryAttempts: 1,
+            retryDelay : 1000,
+            mockMode: false
+        },
+        staging: {
+            api: 'https://staging-api.yourapp.com',
+            ws: 'wss://staging-api.yourapp.com',
+            metadata: 'https://staging-metadata.yourapp.com',
+            apiVersion: 'api/v2.0',
+            debug : true,
+            timeout: 10000,
+            retryAttempts: 1,
+            retryDelay : 1000,
+            mockMode: false
+        },
+        production: {
+            api: 'https://api.yourapp.com',
+            ws: 'wss://api.yourapp.com',
+            metadata: 'https://metadata.yourapp.com',
+            apiVersion: 'api/v2.0',
+            debug : false,
+            timeout: 10000,
+            retryAttempts: 2,
+            retryDelay : 2000,
+            mockMode: false
+        }
+    };
 
-            // HttpClient configuration
-            httpClient: {
-                timeout: 30000,
-                retries: 1,
-                retryDelay: 1000,
-                mockMode: false
-            },
+    static tokenKey = "_tillo_ai_at_";
 
-            // Authentication configuration
-            auth: {
-                tokenKey: 'authToken',
-                autoTokenRefresh: true,
-                loginRedirect: '/login',
-                logoutRedirect: '/login'
-            }
-        };
+    static logoutRedirect = "";
 
-        // Use Utils.deepMerge for proper configuration merging
-        this.config = Utils.deepMerge(Utils.deepClone(defaultConfig), config);
-
+    constructor() {
+        this.token = '';
         this.initialized = false;
         this.eventListeners = [];
 
         // Bind methods
         this.handleStorageChange = this.handleStorageChange.bind(this);
-
-        Utils.log('AppConfig', 'log', 'Configuration initialized:', this.config);
-    }
-
-    /**
-     * Get default configuration for different environments
-     * @param {string} environment - Environment name
-     * @returns {object} - Default configuration
-     */
-    static getDefaultConfig(environment = 'development') {
-        const baseConfig = {
-            environment: environment,
-            debug: environment !== 'production',
-            apiVersion: 'v2.0'
-        };
-
-        const environmentConfigs = {
-            development: {
-                ...baseConfig,
-                httpClient: {
-                    timeout: 30000,
-                    retries: 1,
-                    mockMode: true // Enable mock mode in development
-                }
-            },
-            staging: {
-                ...baseConfig,
-                debug: true,
-                httpClient: {
-                    timeout: 20000,
-                    retries: 2,
-                    mockMode: false
-                }
-            },
-            production: {
-                ...baseConfig,
-                debug: false,
-                httpClient: {
-                    timeout: 15000,
-                    retries: 3,
-                    mockMode: false
-                }
-            }
-        };
-
-        return environmentConfigs[environment] || environmentConfigs.development;
-    }
-
-    /**
-     * Create AppConfig for specific environment
-     * @param {string} environment - Environment name
-     * @param {object} overrides - Configuration overrides
-     * @returns {AppConfig} - Configured AppConfig instance
-     */
-    static forEnvironment(environment, overrides = {}) {
-        const defaultConfig = AppConfig.getDefaultConfig(environment);
-        return new AppConfig(Utils.deepMerge(defaultConfig, overrides));
     }
 
     /**
      * Initialize the application configuration
      */
-    async init() {
+    async init(environment = 'development', mockMode = false) {
         if (this.initialized) {
             Utils.log('AppConfig', 'warn', 'Already initialized');
             return this;
@@ -116,26 +69,23 @@ class AppConfig {
             // 1. Validate dependencies
             this.validateDependencies();
 
-            // 2. Setup environment
-            this.setupEnvironment();
-
-            // 3. Configure HttpClient
+            // 2. Configure HttpClient
             await this.configureHttpClient();
 
-            // 4. Configure Data Managers
-            this.configureDataManagers();
-
-            // 5. Setup authentication
+            // 3. Setup authentication
             this.setupAuthentication();
 
-            // 6. Setup event listeners
+            // 4. Setup event listeners
             this.setupEventListeners();
+
+            // 5. Initialize component manager
+            this.componentManager = new ComponentManager(this);
 
             this.initialized = true;
             Utils.log('AppConfig', 'log', 'Initialization complete');
 
             // Emit initialization event
-            this.emitEvent('initialized', this.getStatus());
+            this.emitEvent('initialized', this.getStatus(environment));
 
             return this;
 
@@ -160,73 +110,18 @@ class AppConfig {
     }
 
     /**
-     * Setup environment variables and global settings
-     */
-    setupEnvironment() {
-        // Get environment-specific URLs
-        const envUrls = this.getEnvironmentURLs();
-
-        // Set global environment variables
-        window.API_BASE_URL = this.config.apiBaseURL || envUrls.api;
-        window.API_VERSION = this.config.apiVersion;
-        window.WS_BASE_URL = this.config.wsBaseURL || envUrls.ws;
-        window.METADATA_BASE_URL = this.config.metadataBaseURL || envUrls.metadata;
-
-        // Set debug mode
-        window.debugMode = this.config.debug;
-
-        Utils.log('AppConfig', 'log', 'Environment setup:', {
-            environment: this.config.environment,
-            apiBaseURL: window.API_BASE_URL,
-            apiVersion: window.API_VERSION,
-            wsBaseURL: window.WS_BASE_URL,
-            metadataBaseURL: window.METADATA_BASE_URL,
-            debug: window.debugMode
-        });
-    }
-
-    /**
-     * Get environment-specific URLs
-     */
-    getEnvironmentURLs() {
-        const environments = {
-            development: {
-                api: 'https://localhost:9020',
-                ws: 'ws://localhost:9021',
-                metadata: 'https://localhost:9020'
-            },
-            staging: {
-                api: 'https://staging-api.yourapp.com',
-                ws: 'wss://staging-api.yourapp.com',
-                metadata: 'https://staging-metadata.yourapp.com'
-            },
-            production: {
-                api: 'https://api.yourapp.com',
-                ws: 'wss://api.yourapp.com',
-                metadata: 'https://metadata.yourapp.com'
-            }
-        };
-
-        return environments[this.config.environment] || environments.development;
-    }
-
-    /**
      * Configure HttpClient with API versioning
      */
-    async configureHttpClient() {
+    async configureHttpClient(environment = 'development', mockMode = false) {
         // Create and configure global API instance
         window.API = new HTTPClient();
-        window.API.configure({
-            baseURL: window.API_BASE_URL,
-            apiVersion: window.API_VERSION, // NEW: API versioning
-            timeout: this.config.httpClient.timeout,
-            retryAttempts: this.config.httpClient.retries,
-            retryDelay: this.config.httpClient.retryDelay,
-            debug: this.config.debug
-        });
+        const httpConfig = AppConfig.httpConfigsByEnvironment[environment];
+        this.httpConfig = httpConfig;
+        httpConfig.mockMode = mockMode;
+        window.API.configure(httpConfig.api, httpConfig);
 
         // Setup mock mode if enabled
-        if (this.config.httpClient.mockMode) {
+        if (mockMode) {
             this.setupMockData();
         }
 
@@ -242,7 +137,7 @@ class AppConfig {
         });
 
         // Add request interceptor for debugging
-        if (this.config.debug) {
+        if (httpConfig.debug) {
             window.API.addRequestInterceptor(async (config) => {
                 Utils.log('API', 'log', 'Request:', config.method, config.url || config.urlOrPath);
                 return config;
@@ -250,16 +145,6 @@ class AppConfig {
         }
 
         Utils.log('AppConfig', 'log', 'HttpClient configured with API version:', window.API_VERSION);
-    }
-
-    /**
-     * Configure Data Managers
-     */
-    configureDataManagers() {
-        // Data managers are ready to use with environment URLs and API versioning
-        // Individual components will create their own instances as needed
-
-        Utils.log('AppConfig', 'log', 'Data Managers configured');
     }
 
     /**
@@ -303,7 +188,7 @@ class AppConfig {
      * Handle localStorage changes (token updates, etc.)
      */
     handleStorageChange(event) {
-        if (event.key === this.config.auth.tokenKey) {
+        if (event.key === AppConfig.auth.tokenKey) {
             if (event.newValue) {
                 // Token updated
                 window.API.setAuthToken(event.newValue);
@@ -426,7 +311,7 @@ class AppConfig {
      * Get stored authentication token
      */
     getStoredToken() {
-        return localStorage.getItem(this.config.auth.tokenKey);
+        return localStorage.getItem(AppConfig.tokenKey);
     }
 
     /**
@@ -434,10 +319,10 @@ class AppConfig {
      */
     setAuthToken(token) {
         if (token) {
-            localStorage.setItem(this.config.auth.tokenKey, token);
+            localStorage.setItem(AppConfig.tokenKey, token);
             window.API.setAuthToken(token);
         } else {
-            localStorage.removeItem(this.config.auth.tokenKey);
+            localStorage.removeItem(AppConfig.tokenKey);
             window.API.setAuthToken(null);
         }
     }
@@ -515,23 +400,10 @@ class AppConfig {
         localStorage.removeItem('userData');
 
         // Navigate to login
-        this.navigate(this.config.auth.logoutRedirect);
+        this.navigate(AppConfig.logoutRedirect);
 
         Utils.log('AppConfig', 'log', 'User logged out');
         this.emitEvent('logout');
-    }
-
-    /**
-     * Switch API version
-     * @param {string} version - New API version
-     */
-    switchApiVersion(version) {
-        this.config.apiVersion = version;
-        window.API_VERSION = version;
-        window.API.configure({ apiVersion: version });
-
-        Utils.log('AppConfig', 'log', 'API version switched to:', version);
-        this.emitEvent('apiVersionChanged', { version });
     }
 
     /**
@@ -555,30 +427,6 @@ class AppConfig {
             event: fullEventName,
             listener: callback
         });
-    }
-
-    /**
-     * Get configuration
-     */
-    getConfig() {
-        return Utils.deepClone(this.config);
-    }
-
-    /**
-     * Update configuration
-     */
-    updateConfig(newConfig) {
-        this.config = Utils.deepMerge(this.config, newConfig);
-
-        // Re-configure HTTPClient if relevant settings changed
-        if (newConfig.apiVersion || newConfig.httpClient || newConfig.apiBaseURL) {
-            this.configureHttpClient();
-        }
-
-        Utils.log('AppConfig', 'log', 'Configuration updated');
-        this.emitEvent('configUpdated', { config: this.getConfig() });
-
-        return this;
     }
 
     /**
@@ -606,17 +454,18 @@ class AppConfig {
     /**
      * Get application status
      */
-    getStatus() {
+    getStatus(environment) {
+        const httpConfig = this.httpConfig;
         return {
             initialized: this.initialized,
-            environment: this.config.environment,
-            apiVersion: this.config.apiVersion,
+            environment: environment,
+            apiVersion: httpConfig.apiVersion,
             hasAuthToken: !!this.getStoredToken(),
-            apiBaseURL: window.API_BASE_URL,
-            wsBaseURL: window.WS_BASE_URL,
-            metadataBaseURL: window.METADATA_BASE_URL,
+            apiBaseURL: httpConfig.api,
+            wsBaseURL: httpConfig.ws,
+            metadataBaseURL: httpConfig.metadata,
             currentUser: this.getCurrentUser(),
-            debug: this.config.debug
+            debug: httpConfig.debug
         };
     }
 
@@ -629,43 +478,14 @@ class AppConfig {
             element.removeEventListener(event, listener);
         });
         this.eventListeners = [];
-
+        if (this.componentManager) {
+            this.componentManager.destroy();
+        }
         this.initialized = false;
         Utils.log('AppConfig', 'log', 'Destroyed');
         this.emitEvent('destroyed');
     }
 
-    /**
-     * Extract error message using Utils (if BaseComponent is not available)
-     */
-    extractErrorMessage(errorOrResponse) {
-        if (!errorOrResponse) {
-            return 'An unknown error occurred';
-        }
-
-        // API response patterns
-        if (errorOrResponse.response && errorOrResponse.response.data) {
-            const data = errorOrResponse.response.data;
-            if (data.message) return data.message;
-            if (data.error) return data.error;
-            if (data.errors && Array.isArray(data.errors) && data.errors.length > 0) {
-                return data.errors[0].message || data.errors[0];
-            }
-        }
-
-        if (errorOrResponse.message) return errorOrResponse.message;
-        if (errorOrResponse.error) return errorOrResponse.error;
-
-        // Network errors
-        if (errorOrResponse.name === 'TypeError' && errorOrResponse.message &&
-            errorOrResponse.message.indexOf('fetch') !== -1) {
-            return 'Network error. Please check your connection and try again.';
-        }
-
-        if (typeof errorOrResponse === 'string') return errorOrResponse;
-
-        return 'An error occurred. Please try again.';
-    }
 }
 
 // ========================================
@@ -682,32 +502,3 @@ if (typeof window !== 'undefined') {
     console.log('✅ Enhanced AppConfig with API versioning loaded');
 }
 
-/*
-Usage Examples:
-
-// Basic initialization
-const appConfig = new AppConfig({
-    environment: 'development',
-    apiVersion: 'v2.0',
-    debug: true
-});
-await appConfig.init();
-
-// Environment-specific initialization
-const stagingConfig = AppConfig.forEnvironment('staging', {
-    apiVersion: 'v1.0',
-    httpClient: { timeout: 25000 }
-});
-await stagingConfig.init();
-
-// Switch API version at runtime
-appConfig.switchApiVersion('v3.0');
-
-// Listen to events
-appConfig.addEventListener('unauthorized', (event) => {
-    console.log('User unauthorized:', event.detail);
-});
-
-// Get status
-console.log('App Status:', appConfig.getStatus());
-*/
