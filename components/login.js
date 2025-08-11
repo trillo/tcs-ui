@@ -1058,17 +1058,6 @@ class Login extends BaseComponent {
                 modalErrorType: 'inline', // Use inline errors for login
                 showLoading: false, // Login handles its own loading state
                 showError: false   // Login handles its own errors
-            },
-            events: {
-                onLoginSuccess: null,
-                onLoginError: null,
-                onForgotPassword: null,
-                onSignUp: null
-            },
-            // No data source needed for login form
-            dataSource: {
-                type: 'static',
-                data: null
             }
         };
     }
@@ -1085,21 +1074,6 @@ class Login extends BaseComponent {
                 showForgotPassword: true,
                 showSignUpLink: true,
                 modalErrorType: 'inline'
-            },
-            events: {
-                onLoginSuccess: (data) => {
-                    console.log('Preview: Login successful', data);
-                    alert('Login successful! (Preview Mode)');
-                },
-                onLoginError: (error) => {
-                    console.log('Preview: Login error', error);
-                },
-                onForgotPassword: () => {
-                    alert('Preview: Forgot password functionality');
-                },
-                onSignUp: () => {
-                    alert('Preview: Sign up functionality');
-                }
             }
         };
     }
