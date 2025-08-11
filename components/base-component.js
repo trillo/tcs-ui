@@ -96,6 +96,9 @@ class BaseComponent {
         }
     }
 
+    async postInit() {
+    }
+
     /**
      * Determine if component needs data manager
      * Override in subclasses that don't need data management

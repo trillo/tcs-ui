@@ -52,7 +52,7 @@ class ComponentManager {
             if (children && Array.isArray(children)) {
                 await this.mountChildren(containerId, children);
             }
-
+            await component.postInit();
             return component;
 
         } catch (error) {

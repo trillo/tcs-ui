@@ -12,6 +12,15 @@ class LeftRightContainer extends BaseComponent {
         this.rightContainer = null;
     }
 
+    async postInit() {
+        this.leftContainer = this.container.querySelector('[data-container-id="left"]');
+        this.rightContainer = this.container.querySelector('[data-container-id="right"]');
+        let self = this;
+        setTimeout(() => {
+            self.syncHeights();
+        }, 100); // Small delay to ensure content is fully rendered
+    }
+
     /**
      * Override needsDataManager since LeftRightContainer doesn't need data management
      */
@@ -147,36 +156,50 @@ class LeftRightContainer extends BaseComponent {
     }
 
     /**
-     * Add event listeners
+     * Sync heights of left and right containers to match the taller one
      */
-    addEventListeners() {
-        this.leftContainer = this.container.querySelector('[data-container-id="left"]');
-        this.rightContainer = this.container.querySelector('[data-container-id="right"]');
-    }
-
     /**
-     * Get container element by side
+     * Sync heights of left and right containers to match the taller one
      */
-    getContainer(side) {
-        return side === 'left' ? this.leftContainer : this.rightContainer;
-    }
-
-    /**
-     * Add component to specific side
-     */
-    addComponent(side, component) {
-        const container = this.getContainer(side);
-        if (!container) return false;
+    syncHeights() {
+        if (!this.leftContainer || !this.rightContainer) {
+            this.log('Cannot sync heights - containers not found');
+            return false;
+        }
         
-        container.innerHTML = '';
+        // Get the first child of each container (the actual components)
+        const leftChild = this.leftContainer.firstElementChild;
+        const rightChild = this.rightContainer.firstElementChild;
+        
+        if (!leftChild || !rightChild) {
+            this.log('Cannot sync heights - child components not found');
+            return false;
+        }
+        
+        // Reset heights to auto to get natural heights
+        leftChild.style.height = 'auto';
+        rightChild.style.height = 'auto';
+        
+        // Get actual heights
+        const leftHeight = leftChild.offsetHeight;
+        const rightHeight = rightChild.offsetHeight;
+        
+        // Set both to the maximum height
+        const maxHeight = Math.max(leftHeight, rightHeight);
+        leftChild.style.height = `${maxHeight}px`;
+        rightChild.style.height = `${maxHeight}px`;
+        
+        this.log(`Child heights synced to ${maxHeight}px (left: ${leftHeight}px, right: ${rightHeight}px)`);
         return true;
     }
 
     /**
-     * Initialize component
+     * Reset container heights to auto (remove manual height setting)
      */
-    initialize() {
-        this.log('LeftRightContainer initialized');
+    resetHeights() {
+        if (this.leftContainer) this.leftContainer.style.height = 'auto';
+        if (this.rightContainer) this.rightContainer.style.height = 'auto';
+        this.log('Heights reset to auto');
     }
 
     /**
