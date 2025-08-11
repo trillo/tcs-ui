@@ -8,36 +8,8 @@ class Login extends BaseComponent {
     static cssFile = ''; // Can be set to external CSS file path
 
     constructor(container, options = {}) {
-        // Merge login-specific options
-        const loginDefaults = {
-            ui: {
-                title: 'Welcome Back',
-                subtitle: 'Sign in to your account',
-                showRememberMe: true,
-                showForgotPassword: true,
-                showSignUpLink: true,
-                modalErrorType: 'inline', // Use inline errors for login
-                showLoading: false, // Login handles its own loading state
-                showError: false   // Login handles its own errors
-            },
-            events: {
-                onLoginSuccess: null,
-                onLoginError: null,
-                onForgotPassword: null,
-                onSignUp: null
-            },
-            // No data source needed for login form
-            dataSource: {
-                type: 'static',
-                data: null
-            }
-        };
-
-        // Merge login defaults with user options first
-        const mergedOptions = Utils.deepMerge(loginDefaults, options);
-
         // Then call parent with merged options
-        super(container, mergedOptions);
+        super(container, options);
 
         // Login-specific state
         this.formData = {
@@ -1077,16 +1049,26 @@ class Login extends BaseComponent {
      */
     static getDefaultOptions() {
         return {
-            events: {
-                onLoginSuccess: (userData) => {
-                    window.location.href = '/dashboard';
-                },
-                onForgotPassword: () => {
-                    // Custom forgot password handling
-                }
-            },
             ui: {
-                errorDisplayType: 'inline' // Use modal instead of inline errors
+                title: 'Welcome Back',
+                subtitle: 'Sign in to your account',
+                showRememberMe: true,
+                showForgotPassword: true,
+                showSignUpLink: true,
+                modalErrorType: 'inline', // Use inline errors for login
+                showLoading: false, // Login handles its own loading state
+                showError: false   // Login handles its own errors
+            },
+            events: {
+                onLoginSuccess: null,
+                onLoginError: null,
+                onForgotPassword: null,
+                onSignUp: null
+            },
+            // No data source needed for login form
+            dataSource: {
+                type: 'static',
+                data: null
             }
         };
     }

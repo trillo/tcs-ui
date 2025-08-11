@@ -70,7 +70,7 @@ class AppConfig {
             this.validateDependencies();
 
             // 2. Configure HttpClient
-            await this.configureHttpClient();
+            await this.configureHttpClient(environment, mockMode);
 
             // 3. Setup authentication
             this.setupAuthentication();
