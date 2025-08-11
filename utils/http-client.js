@@ -9,7 +9,6 @@ class HTTPClient {
         this.baseURL = '';
         this.apiVersion = ''; // New: API version support
         this.defaultHeaders = {
-            'Content-Type': 'application/json'
         };
         this.timeout = 30000; // 30 seconds
         this.retryAttempts = 1;
@@ -201,12 +200,13 @@ class HTTPClient {
      * @param {object} options - Request options
      */
     async json(urlOrPath, options = {}) {
+        options.headers = { ...this.headers, 'Content-Type': 'application/json' };
         const response = await this.get(urlOrPath, options);
 
         // If data is a string (raw JSON), try to parse it
         if (typeof response.data === 'string') {
             try {
-                return JSON.parse(response.data);
+                response.data = JSON.parse(response.data);
             } catch (error) {
                 this.log('Failed to parse JSON string:', error.message);
                 throw new Error('Invalid JSON response');
@@ -218,7 +218,7 @@ class HTTPClient {
             throw new Error('No data received or failed to parse response');
         }
 
-        return response.data;
+        return response;
     }
 
     /**
@@ -228,8 +228,9 @@ class HTTPClient {
      * @param {object} options - Request options
      */
     async postJson(urlOrPath, data, options = {}) {
+        options.headers = { ...this.headers, 'Content-Type': 'application/json' };
         const response = await this.post(urlOrPath, data, options);
-        return response.data;
+        return response;
     }
 
     /**
@@ -239,8 +240,9 @@ class HTTPClient {
      * @param {object} options - Request options
      */
     async putJson(urlOrPath, data, options = {}) {
+        options.headers = { ...this.headers, 'Content-Type': 'application/json' };
         const response = await this.put(urlOrPath, data, options);
-        return response.data;
+        return response;
     }
 
     /**
@@ -330,7 +332,7 @@ class HTTPClient {
             ...options
         };
 
-        config.headers = { ...this.defaultHeaders };
+        config.headers = { ...this.defaultHeaders, ...config.headers };
 
         // Build full URL with API versioning
         const fullUrl = this.buildUrl(urlOrPath, config.params);
