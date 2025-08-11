@@ -74,136 +74,145 @@ class Signup extends BaseComponent {
                     </div>
 
                     <form class="${Signup.cssNamespace}__form" id="${Signup.cssNamespace}-form">
-                        <!-- User ID Field -->
-                        <div class="form-group">
-                            <label class="form-label" for="${Signup.cssNamespace}-userId">
-                                <i class="fas fa-user"></i>
-                                User ID <span class="text-color-error">*</span>
-                            </label>
-                            <input
-                                type="text"
-                                id="${Signup.cssNamespace}-userId"
-                                name="userId"
-                                class="form-control ${Signup.cssNamespace}__input"
-                                placeholder="Choose a unique user ID"
-                                value="${this.formData.userId}"
-                                required
-                                autocomplete="username"
-                            >
-                            <div class="${Signup.cssNamespace}__field-error" id="${Signup.cssNamespace}-userId-error"></div>
-                        </div>
-
-                        <!-- Email Field -->
-                        <div class="form-group">
-                            <label class="form-label" for="${Signup.cssNamespace}-email">
-                                <i class="fas fa-envelope"></i>
-                                Email Address <span class="text-color-error">*</span>
-                            </label>
-                            <input
-                                type="email"
-                                id="${Signup.cssNamespace}-email"
-                                name="email"
-                                class="form-control ${Signup.cssNamespace}__input"
-                                placeholder="Enter your email address"
-                                value="${this.formData.email}"
-                                required
-                                autocomplete="email"
-                            >
-                            <div class="${Signup.cssNamespace}__field-error" id="${Signup.cssNamespace}-email-error"></div>
-                        </div>
-
-                        <!-- Password Field -->
-                        <div class="form-group">
-                            <label class="form-label" for="${Signup.cssNamespace}-password">
-                                <i class="fas fa-lock"></i>
-                                Password <span class="text-color-error">*</span>
-                            </label>
-                            <div class="${Signup.cssNamespace}__password-wrapper">
+                        <!-- Row 1: User ID and Email -->
+                        <div class="${Signup.cssNamespace}__form-row">
+                            <!-- User ID Field -->
+                            <div class="form-group ${Signup.cssNamespace}__form-col">
+                                <label class="form-label" for="${Signup.cssNamespace}-userId">
+                                    <i class="fas fa-user"></i>
+                                    User ID <span class="text-color-error">*</span>
+                                </label>
                                 <input
-                                    type="password"
-                                    id="${Signup.cssNamespace}-password"
-                                    name="password"
+                                    type="text"
+                                    id="${Signup.cssNamespace}-userId"
+                                    name="userId"
                                     class="form-control ${Signup.cssNamespace}__input"
-                                    placeholder="Create a strong password"
-                                    value="${this.formData.password}"
+                                    placeholder="Choose a unique user ID"
+                                    value="${this.formData.userId}"
                                     required
-                                    autocomplete="new-password"
+                                    autocomplete="username"
                                 >
-                                <button
-                                    type="button"
-                                    class="${Signup.cssNamespace}__password-toggle"
-                                    data-action="toggle-password"
-                                    aria-label="Toggle password visibility"
-                                >
-                                    <i class="fas fa-eye"></i>
-                                </button>
+                                <div class="${Signup.cssNamespace}__field-error" id="${Signup.cssNamespace}-userId-error"></div>
                             </div>
-                            <div class="${Signup.cssNamespace}__field-error" id="${Signup.cssNamespace}-password-error"></div>
-                        </div>
 
-                        <!-- Repeat Password Field -->
-                        <div class="form-group">
-                            <label class="form-label" for="${Signup.cssNamespace}-repeatPassword">
-                                <i class="fas fa-lock"></i>
-                                Confirm Password <span class="text-color-error">*</span>
-                            </label>
-                            <div class="${Signup.cssNamespace}__password-wrapper">
+                            <!-- Email Field -->
+                            <div class="form-group ${Signup.cssNamespace}__form-col">
+                                <label class="form-label" for="${Signup.cssNamespace}-email">
+                                    <i class="fas fa-envelope"></i>
+                                    Email Address <span class="text-color-error">*</span>
+                                </label>
                                 <input
-                                    type="password"
-                                    id="${Signup.cssNamespace}-repeatPassword"
-                                    name="repeatPassword"
+                                    type="email"
+                                    id="${Signup.cssNamespace}-email"
+                                    name="email"
                                     class="form-control ${Signup.cssNamespace}__input"
-                                    placeholder="Confirm your password"
-                                    value="${this.formData.repeatPassword}"
+                                    placeholder="Enter your email address"
+                                    value="${this.formData.email}"
                                     required
-                                    autocomplete="new-password"
+                                    autocomplete="email"
                                 >
-                                <button
-                                    type="button"
-                                    class="${Signup.cssNamespace}__password-toggle"
-                                    data-action="toggle-repeat-password"
-                                    aria-label="Toggle confirm password visibility"
-                                >
-                                    <i class="fas fa-eye"></i>
-                                </button>
+                                <div class="${Signup.cssNamespace}__field-error" id="${Signup.cssNamespace}-email-error"></div>
                             </div>
-                            <div class="${Signup.cssNamespace}__field-error" id="${Signup.cssNamespace}-repeatPassword-error"></div>
                         </div>
 
-                        <!-- First Name Field (Optional) -->
-                        <div class="form-group">
-                            <label class="form-label" for="${Signup.cssNamespace}-firstName">
-                                <i class="fas fa-user"></i>
-                                First Name <span class="text-secondary">(optional)</span>
-                            </label>
-                            <input
-                                type="text"
-                                id="${Signup.cssNamespace}-firstName"
-                                name="firstName"
-                                class="form-control ${Signup.cssNamespace}__input"
-                                placeholder="Enter your first name"
-                                value="${this.formData.firstName}"
-                                autocomplete="given-name"
-                            >
-                            <div class="${Signup.cssNamespace}__field-error" id="${Signup.cssNamespace}-firstName-error"></div>
+                        <!-- Row 2: Password and Confirm Password -->
+                        <div class="${Signup.cssNamespace}__form-row">
+                            <!-- Password Field -->
+                            <div class="form-group ${Signup.cssNamespace}__form-col">
+                                <label class="form-label" for="${Signup.cssNamespace}-password">
+                                    <i class="fas fa-lock"></i>
+                                    Password <span class="text-color-error">*</span>
+                                </label>
+                                <div class="${Signup.cssNamespace}__password-wrapper">
+                                    <input
+                                        type="password"
+                                        id="${Signup.cssNamespace}-password"
+                                        name="password"
+                                        class="form-control ${Signup.cssNamespace}__input"
+                                        placeholder="Create a strong password"
+                                        value="${this.formData.password}"
+                                        required
+                                        autocomplete="new-password"
+                                    >
+                                    <button
+                                        type="button"
+                                        class="${Signup.cssNamespace}__password-toggle"
+                                        data-action="toggle-password"
+                                        aria-label="Toggle password visibility"
+                                    >
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </div>
+                                <div class="${Signup.cssNamespace}__field-error" id="${Signup.cssNamespace}-password-error"></div>
+                            </div>
+
+                            <!-- Repeat Password Field -->
+                            <div class="form-group ${Signup.cssNamespace}__form-col">
+                                <label class="form-label" for="${Signup.cssNamespace}-repeatPassword">
+                                    <i class="fas fa-lock"></i>
+                                    Confirm Password <span class="text-color-error">*</span>
+                                </label>
+                                <div class="${Signup.cssNamespace}__password-wrapper">
+                                    <input
+                                        type="password"
+                                        id="${Signup.cssNamespace}-repeatPassword"
+                                        name="repeatPassword"
+                                        class="form-control ${Signup.cssNamespace}__input"
+                                        placeholder="Confirm your password"
+                                        value="${this.formData.repeatPassword}"
+                                        required
+                                        autocomplete="new-password"
+                                    >
+                                    <button
+                                        type="button"
+                                        class="${Signup.cssNamespace}__password-toggle"
+                                        data-action="toggle-repeat-password"
+                                        aria-label="Toggle confirm password visibility"
+                                    >
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </div>
+                                <div class="${Signup.cssNamespace}__field-error" id="${Signup.cssNamespace}-repeatPassword-error"></div>
+                            </div>
                         </div>
 
-                        <!-- Last Name Field (Optional) -->
-                        <div class="form-group">
-                            <label class="form-label" for="${Signup.cssNamespace}-lastName">
-                                <i class="fas fa-user"></i>
-                                Last Name <span class="text-secondary">(optional)</span>
-                            </label>
-                            <input
-                                type="text"
-                                id="${Signup.cssNamespace}-lastName"
-                                name="lastName"
-                                class="form-control ${Signup.cssNamespace}__input"
-                                placeholder="Enter your last name"
-                                value="${this.formData.lastName}"
-                                autocomplete="family-name"
-                            >
-                            <div class="${Signup.cssNamespace}__field-error" id="${Signup.cssNamespace}-lastName-error"></div>
+                        <!-- Row 3: First Name and Last Name -->
+                        <div class="${Signup.cssNamespace}__form-row">
+                            <!-- First Name Field (Optional) -->
+                            <div class="form-group ${Signup.cssNamespace}__form-col">
+                                <label class="form-label" for="${Signup.cssNamespace}-firstName">
+                                    <i class="fas fa-user"></i>
+                                    First Name <span class="text-secondary">(optional)</span>
+                                </label>
+                                <input
+                                    type="text"
+                                    id="${Signup.cssNamespace}-firstName"
+                                    name="firstName"
+                                    class="form-control ${Signup.cssNamespace}__input"
+                                    placeholder="Enter your first name"
+                                    value="${this.formData.firstName}"
+                                    autocomplete="given-name"
+                                >
+                                <div class="${Signup.cssNamespace}__field-error" id="${Signup.cssNamespace}-firstName-error"></div>
+                            </div>
+
+                            <!-- Last Name Field (Optional) -->
+                            <div class="form-group ${Signup.cssNamespace}__form-col">
+                                <label class="form-label" for="${Signup.cssNamespace}-lastName">
+                                    <i class="fas fa-user"></i>
+                                    Last Name <span class="text-secondary">(optional)</span>
+                                </label>
+                                <input
+                                    type="text"
+                                    id="${Signup.cssNamespace}-lastName"
+                                    name="lastName"
+                                    class="form-control ${Signup.cssNamespace}__input"
+                                    placeholder="Enter your last name"
+                                    value="${this.formData.lastName}"
+                                    autocomplete="family-name"
+                                >
+                                <div class="${Signup.cssNamespace}__field-error" id="${Signup.cssNamespace}-lastName-error"></div>
+                            </div>
                         </div>
 
                         <!-- Submit Button -->
@@ -281,7 +290,7 @@ class Signup extends BaseComponent {
 
             .${Signup.cssNamespace}__container {
                 width: 100%;
-                max-width: 450px;
+                max-width: 780px;
                 background: var(--color-surface);
                 border-radius: var(--radius-xl);
                 box-shadow: var(--shadow-xl);
@@ -476,6 +485,18 @@ class Signup extends BaseComponent {
                 margin-bottom: var(--spacing-lg);
             }
 
+            /* Form Row Layout */
+            .${Signup.cssNamespace}__form-row {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: var(--spacing-md);
+                margin-bottom: var(--spacing-sm);
+            }
+
+            .${Signup.cssNamespace}__form-col {
+                min-width: 0; /* Prevents grid overflow */
+            }
+
             .${Signup.cssNamespace}__input {
                 transition: all var(--transition-normal);
                 border-radius: var(--radius-lg);
@@ -584,6 +605,12 @@ class Signup extends BaseComponent {
 
                 .${Signup.cssNamespace}__error-actions {
                     flex-direction: column;
+                }
+
+                /* Stack form columns on mobile */
+                .${Signup.cssNamespace}__form-row {
+                    grid-template-columns: 1fr;
+                    gap: 0;
                 }
             }
 
