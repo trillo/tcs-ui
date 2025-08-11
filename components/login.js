@@ -9,7 +9,7 @@ class Login extends BaseComponent {
 
     constructor(container, options = {}) {
         // Merge login-specific options
-        const loginOptions = {
+        const loginDefaults = {
             ui: {
                 title: 'Welcome Back',
                 subtitle: 'Sign in to your account',
@@ -18,25 +18,26 @@ class Login extends BaseComponent {
                 showSignUpLink: true,
                 modalErrorType: 'inline', // Use inline errors for login
                 showLoading: false, // Login handles its own loading state
-                showError: false,   // Login handles its own errors
-                ...options.ui
+                showError: false   // Login handles its own errors
             },
             events: {
                 onLoginSuccess: null,
                 onLoginError: null,
                 onForgotPassword: null,
-                onSignUp: null,
-                ...options.events
+                onSignUp: null
             },
             // No data source needed for login form
             dataSource: {
                 type: 'static',
                 data: null
-            },
-            ...options
+            }
         };
 
-        super(container, loginOptions);
+        // Merge login defaults with user options first
+        const mergedOptions = BaseComponent.deepMerge(loginDefaults, options);
+
+        // Then call parent with merged options
+        super(container, mergedOptions);
 
         // Login-specific state
         this.formData = {
