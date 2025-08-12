@@ -78,7 +78,7 @@
             return;
         }
         const containerId = 'preview-container';
-        const options = componentClass.getPreviewOptions();
+        const options = componentClass.getDefaultOptions();
         const container = document.getElementById(containerId);
         if (options.ui) {
             if (options.ui.preferredWidth) {

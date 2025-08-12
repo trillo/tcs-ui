@@ -225,29 +225,6 @@ class LeftRightContainer extends BaseComponent {
             }
         };
     }
-
-    /**
-     * Get preview options
-     */
-    static getPreviewOptions() {
-        return {
-            ui: {
-                leftWidth: '50%',
-                rightWidth: '50%',
-                gap: '0px',
-                padding: '20px',
-                leftAlign: 'right',
-                rightAlign: 'left',
-                backgroundColor: '#fafafa',
-                leftBackgroundColor: '#f8f8f8',
-                rightBackgroundColor: '#f8f8f8',
-                breakpoint: '768px',
-                showPlaceholders: true,
-                leftPlaceholder: 'This is the left container. Components added here will replace this placeholder.',
-                rightPlaceholder: 'This is the right container. Components added here will replace this placeholder.'
-            }
-        };
-    }
 }
 
 // Export for different environments

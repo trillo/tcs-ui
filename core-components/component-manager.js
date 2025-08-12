@@ -134,7 +134,7 @@ class ComponentManager {
                 }
 
                 // Mount the child component
-                const childOptions = options.preview ? ChildComponentClass.getPreviewOptions() : ChildComponentClass.getDefaultOptions();
+                const childOptions = ChildComponentClass.getDefaultOptions();
                 childOptions.preview = options.preview;
                 this.mountComponent(ChildComponentClass, childContainer.id, childOptions);
                 mountedChildrenCount++;

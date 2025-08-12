@@ -1154,13 +1154,6 @@ class Signup extends BaseComponent {
             }
         };
     }
-
-    /**
-     * Get default options for preview mode
-     */
-    static getPreviewOptions() {
-        return this.getDefaultOptions();
-    }
 }
 
 // ========================================
