@@ -274,6 +274,8 @@ class Signup extends BaseComponent {
      * Signup-specific CSS (inherits styles from Login component pattern)
      */
     getInlineCSS() {
+        const { borderRadius, borderWidth, borderColor, borderBox, innerPadding } = this.options.ui;
+
         return `
             ${super.getInlineCSS()}
 
@@ -290,9 +292,10 @@ class Signup extends BaseComponent {
                 width: 100%;
                 height: 100%;
                 background: var(--color-surface);
-                border-radius: var(--radius-xl);
-                box-shadow: var(--shadow-xl);
-                padding: var(--spacing-xxl);
+                border-radius: ${borderRadius};
+                border: ${borderWidth} solid ${borderColor};
+                box-shadow: ${borderBox};
+                padding: ${innerPadding};
                 animation: slideUp 0.4s ease-out;
                 position: relative;
                 box-sizing: border-box;
@@ -1139,7 +1142,14 @@ class Signup extends BaseComponent {
                 showLoginLink: true,
                 modalErrorType: 'inline', // Use inline errors for signup
                 showLoading: false, // Signup handles its own loading state
-                showError: false   // Signup handles its own errors
+                showError: false,   // Signup handles its own errors
+                borderRadius: '0px',
+                borderWidth: '0px',
+                borderColor: '#e0e0e0',
+                borderBox : "none",
+                innerPadding: '32px',
+                preferredWidth: '780px',
+                preferredHeight: '650px'
             }
         };
     }
@@ -1148,14 +1158,7 @@ class Signup extends BaseComponent {
      * Get default options for preview mode
      */
     static getPreviewOptions() {
-        return {
-            ui: {
-                title: 'Create Account',
-                subtitle: 'Sign up to get started',
-                showLoginLink: true,
-                modalErrorType: 'inline'
-            }
-        };
+        return this.getDefaultOptions();
     }
 }
 
@@ -1172,3 +1175,27 @@ if (typeof window !== 'undefined') {
     window.Signup = Signup;
     console.log('✅ Signup component (extends BaseComponent) loaded');
 }
+
+/* __START_OF_JSON_SPECIFICATION__
+{
+  "name": "Signup",
+  "type": "signup",
+  "options": {
+    "ui": {
+      "title": "Create Account",
+      "subtitle": "Sign up to get started",
+      "showLoginLink": true,
+      "modalErrorType": "inline",
+      "showLoading": false,
+      "showError": false,
+      "borderRadius": "0px",
+      "borderWidth": "0px",
+      "borderColor": "#e0e0e0",
+      "borderBox" : "none",
+      "innerPadding": "32px",
+      "preferredWidth": "780px",
+      "preferredHeight": "650px"
+    }
+  }
+}
+__END_OF_JSON_SPECIFICATION__ */

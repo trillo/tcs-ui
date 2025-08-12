@@ -197,6 +197,8 @@ class Login extends BaseComponent {
      * Login-specific CSS
      */
     getInlineCSS() {
+        const { borderRadius, borderWidth, borderColor, borderBox, innerPadding } = this.options.ui;
+
         return `
             ${super.getInlineCSS()}
 
@@ -213,9 +215,10 @@ class Login extends BaseComponent {
                 width: 100%;
                 height: 100%;
                 background: var(--color-surface);
-                border-radius: var(--radius-xl);
-                box-shadow: var(--shadow-xl);
-                padding: var(--spacing-xxl);
+                border-radius: ${borderRadius};
+                border: ${borderWidth} solid ${borderColor};
+                box-shadow: ${borderBox};
+                padding: ${innerPadding};
                 animation: slideUp 0.4s ease-out;
                 position: relative;
                 box-sizing: border-box;
@@ -1059,7 +1062,14 @@ class Login extends BaseComponent {
                 showSignUpLink: true,
                 modalErrorType: 'inline', // Use inline errors for login
                 showLoading: false, // Login handles its own loading state
-                showError: false   // Login handles its own errors
+                showError: false,   // Login handles its own errors
+                borderRadius: '0px',
+                borderWidth: '0px',
+                borderColor: '#e0e0e0',
+                borderBox : "none",
+                innerPadding: '32px',
+                preferredWidth: '400px',
+                preferredHeight: '500px'
             }
         };
     }
@@ -1068,16 +1078,7 @@ class Login extends BaseComponent {
      * Get default options for preview mode
      */
     static getPreviewOptions() {
-        return {
-            ui: {
-                title: 'Welcome Back',
-                subtitle: 'Sign in to your account',
-                showRememberMe: true,
-                showForgotPassword: true,
-                showSignUpLink: true,
-                modalErrorType: 'inline'
-            }
-        };
+        return this.getDefaultOptions();
     }
 }
 
@@ -1094,3 +1095,29 @@ if (typeof window !== 'undefined') {
     window.Login = Login;
     console.log('✅ Refactored Login component (extends BaseComponent) loaded');
 }
+
+/* __START_OF_JSON_SPECIFICATION__
+{
+  "name": "Login",
+  "type": "login",
+  "options": {
+    "ui": {
+      "title": "Welcome Back",
+      "subtitle": "Sign in to your account",
+      "showRememberMe": true,
+      "showForgotPassword": true,
+      "showSignUpLink": true,
+      "modalErrorType": "inline",
+      "showLoading": false,
+      "showError": false,
+      "borderRadius": "0px",
+      "borderWidth": "0px",
+      "borderColor": "#e0e0e0",
+      "borderBox" : "none",
+      "innerPadding": "32px",
+      "preferredWidth": "400px",
+      "preferredHeight": "500px"
+    }
+  }
+}
+__END_OF_JSON_SPECIFICATION__ */
