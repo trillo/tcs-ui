@@ -279,24 +279,26 @@ class Signup extends BaseComponent {
 
             /* Signup Component Styles */
             .${Signup.cssNamespace} {
-                min-height: 100vh;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                padding: var(--spacing-lg);
+                width: 100%;
+                height: 100%;
+                padding: 0; /* REMOVED: Let container control all padding */
                 background: #fafafa;
-                position: relative;
+                box-sizing: border-box;
             }
 
             .${Signup.cssNamespace}__container {
                 width: 100%;
-                max-width: 780px;
+                height: 100%;
                 background: var(--color-surface);
                 border-radius: var(--radius-xl);
                 box-shadow: var(--shadow-xl);
                 padding: var(--spacing-xxl);
                 animation: slideUp 0.4s ease-out;
                 position: relative;
+                box-sizing: border-box;
+                display: flex;
+                flex-direction: column;
+                justify-content: flex-start; 
             }
 
             @keyframes slideUp {

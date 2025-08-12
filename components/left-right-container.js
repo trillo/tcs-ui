@@ -15,10 +15,10 @@ class LeftRightContainer extends BaseComponent {
     async postInit() {
         this.leftContainer = this.container.querySelector('[data-container-id="left"]');
         this.rightContainer = this.container.querySelector('[data-container-id="right"]');
-        let self = this;
-        setTimeout(() => {
-            self.syncHeights();
+        /*setTimeout(() => {
+            this.syncHeights();
         }, 100); // Small delay to ensure content is fully rendered
+        */
     }
 
     /**
@@ -106,6 +106,7 @@ class LeftRightContainer extends BaseComponent {
                 justify-content: ${leftAlign === 'left' ? 'flex-start' : leftAlign === 'right' ? 'flex-end' : 'center'};
                 min-height: 200px;
                 box-sizing: border-box;
+                height: 100vh;
             }
 
             .${LeftRightContainer.cssNamespace}__right {
@@ -117,6 +118,7 @@ class LeftRightContainer extends BaseComponent {
                 justify-content: ${rightAlign === 'left' ? 'flex-start' : rightAlign === 'right' ? 'flex-end' : 'center'};
                 min-height: 200px;
                 box-sizing: border-box;
+                height: 100vh;
             }
 
             .${LeftRightContainer.cssNamespace}__placeholder {
