@@ -15,10 +15,9 @@ class LeftRightContainer extends BaseComponent {
     async postInit() {
         this.leftContainer = this.container.querySelector('[data-container-id="left"]');
         this.rightContainer = this.container.querySelector('[data-container-id="right"]');
-        /*setTimeout(() => {
+        setTimeout(() => {
             this.syncHeights();
         }, 100); // Small delay to ensure content is fully rendered
-        */
     }
 
     /**

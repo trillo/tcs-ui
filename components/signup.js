@@ -286,11 +286,11 @@ class Signup extends BaseComponent {
                 padding: 0; /* REMOVED: Let container control all padding */
                 background: #fafafa;
                 box-sizing: border-box;
+                display: flex;
+                flex-direction: column;
             }
 
             .${Signup.cssNamespace}__container {
-                width: 100%;
-                height: 100%;
                 background: var(--color-surface);
                 border-radius: ${borderRadius};
                 border: ${borderWidth} solid ${borderColor};
@@ -302,6 +302,7 @@ class Signup extends BaseComponent {
                 display: flex;
                 flex-direction: column;
                 justify-content: flex-start; 
+                flex-grow: 1
             }
 
             @keyframes slideUp {
